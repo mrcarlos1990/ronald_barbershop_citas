@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}{{ settings.nombre_negocio }} | Reservas premium{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container hero-grid">
+        <div class="hero-copy">
+            <span class="eyebrow">Reservas online desde WhatsApp</span>
+            <h1>{{ settings.nombre_negocio }}</h1>
+            <p class="hero-tagline">{{ settings.eslogan }}</p>
+            <p class="hero-description">
+                Reserva tu cita en menos de un minuto con una experiencia premium, visual y pensada para telefono.
+                Elige servicio, barbero, fecha y hora disponible sin llamadas ni cruces de agenda.
+            </p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="{{ url_for('main.booking_form') }}">Agendar cita</a>
+                <a class="btn btn-secondary" href="{{ whatsapp_link }}" target="_blank" rel="noreferrer">Escribenos por WhatsApp</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <strong>{{ services|length }}</strong>
+                    <span>Servicios activos</span>
+                </div>
+                <div class="stat-card">
+                    <strong>{{ barbers|length }}</strong>
+                    <span>Barberos disponibles</span>
+                </div>
+                <div class="stat-card">
+                    <strong>{{ settings.intervalo_minutos }} min</strong>
+                    <span>Agenda dinamica</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-panel">
+            <div class="hero-highlight">
+                <span class="panel-label">Experiencia premium</span>
+                <h2>Marca elegante, agenda moderna y confirmacion real por WhatsApp</h2>
+                <p>
+                    Comparte el enlace directo de reservas y deja que tus clientes aparten su espacio con claridad,
+                    velocidad y una estetica de barberia de alto nivel.
+                </p>
+            </div>
+            <div class="mini-schedule">
+                <div class="mini-row">
+                    <span>Horario</span>
+                    <strong>{{ settings.hora_apertura|display_time }} - {{ settings.hora_cierre|display_time }}</strong>
+                </div>
+                <div class="mini-row">
+                    <span>Link directo</span>
+                    <strong>{{ booking_url }}</strong>
+                </div>
+                <div class="mini-row">
+                    <span>Confirmacion</span>
+                    <strong>wa.me con mensaje prellenado</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Servicios</span>
+            <h2>Una carta pensada para imagen, precision y fidelizacion</h2>
+        </div>
+        <div class="card-grid three-col">
+            {% for service in services %}
+                <article class="service-card">
+                    <div class="service-card-top">
+                        <h3>{{ service.nombre }}</h3>
+                        <span>{{ service.precio|currency }}</span>
+                    </div>
+                    <p>{{ service.descripcion }}</p>
+                    <div class="service-meta">
+                        <span>{{ service.duracion_minutos }} min</span>
+                        <a href="{{ url_for('main.booking_form', servicio_id=service.id) }}">Reservar</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section-block accent-section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Horarios</span>
+            <h2>Agenda clara para que el cliente sepa cuando puede entrar</h2>
+        </div>
+        <div class="steps-grid">
+            <article class="step-card">
+                <strong>1</strong>
+                <h3>Elige servicio</h3>
+                <p>La duracion real del servicio define los espacios que el sistema te mostrara.</p>
+            </article>
+            <article class="step-card">
+                <strong>2</strong>
+                <h3>Selecciona dia</h3>
+                <p>El calendario visual resalta los dias con disponibilidad y desactiva los no validos.</p>
+            </article>
+            <article class="step-card">
+                <strong>3</strong>
+                <h3>Confirma por WhatsApp</h3>
+                <p>Al terminar, se abre el chat real con un mensaje elegante listo para enviar.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Beneficios</span>
+            <h2>Disenado para clientes moviles y administracion eficiente</h2>
+        </div>
+        <div class="card-grid three-col">
+            <article class="team-card">
+                <div class="avatar-ring">01</div>
+                <h3>Reserva en menos de un minuto</h3>
+                <p>Formulario corto, calendario claro y horarios que se actualizan sin recargas innecesarias.</p>
+            </article>
+            <article class="team-card">
+                <div class="avatar-ring">02</div>
+                <h3>Sin doble reserva</h3>
+                <p>El sistema valida horario laboral, duracion real del servicio y conflictos por barbero.</p>
+            </article>
+            <article class="team-card">
+                <div class="avatar-ring">03</div>
+                <h3>Panel admin premium</h3>
+                <p>Gestiona citas, clientes, barberos, servicios y bloqueos desde una interfaz limpia y potente.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section-block accent-section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Equipo</span>
+            <h2>Barberos que cuidan cada detalle del look final</h2>
+        </div>
+        <div class="card-grid three-col">
+            {% for barber in barbers %}
+                <article class="team-card">
+                    <div class="avatar-ring">{{ barber.nombre[:1] }}</div>
+                    <h3>{{ barber.nombre }}</h3>
+                    <p class="team-role">{{ barber.especialidad or "Atencion premium" }}</p>
+                    <p>{{ barber.bio or "Atencion profesional y experiencia premium." }}</p>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

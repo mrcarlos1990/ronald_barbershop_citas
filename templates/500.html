@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Error interno{% endblock %}
+
+{% block content %}
+<section class="error-state">
+    <div class="container narrow">
+        <span class="eyebrow">500</span>
+        <h1>Ocurrió un error inesperado</h1>
+        <p>La aplicación no pudo completar la acción en este momento. Intenta nuevamente en unos segundos.</p>
+        <div class="hero-actions">
+            <a class="btn btn-primary" href="{{ url_for('main.landing') }}">Ir al inicio</a>
+            <a class="btn btn-secondary" href="{{ url_for('admin.dashboard') if current_admin else url_for('main.booking_form') }}">
+                {{ "Volver al panel" if current_admin else "Reservar cita" }}
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Admin | {{ global_settings.nombre_negocio }}{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container auth-shell">
+        <div class="auth-copy">
+            <span class="eyebrow">Panel administrativo</span>
+            <h1>Control total de la barberia</h1>
+            <p>
+                Gestiona citas, horarios, servicios, barberos y clientes desde una interfaz elegante y optimizada
+                para el trabajo diario.
+            </p>
+        </div>
+
+        <form class="form-card auth-card" method="post">
+            <div class="form-card-header">
+                <h2>Iniciar sesion</h2>
+                <p>Acceso exclusivo para administracion.</p>
+            </div>
+
+            <div class="form-grid single-col">
+                <div class="form-field">
+                    <label for="username">Usuario</label>
+                    <input id="username" name="username" type="text" placeholder="admin" required>
+                </div>
+                <div class="form-field">
+                    <label for="password">Contrasena</label>
+                    <input id="password" name="password" type="password" placeholder="********" required>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-full" type="submit">Entrar al panel</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ "Editar cita" if appointment else "Nueva cita" }} | {{ global_settings.nombre_negocio }}{% endblock %}
+{% block admin_heading %}{{ "Reprogramar o actualizar cita" if appointment else "Crear cita manual" }}{% endblock %}
+
+{% block admin_content %}
+<section class="admin-grid two-col">
+    <article class="panel-card">
+        <div class="panel-card-header">
+            <h2>{{ "Editar cita #" ~ appointment.id if appointment else "Nueva cita manual" }}</h2>
+        </div>
+
+        <form
+            id="admin-appointment-form"
+            class="form-grid"
+            method="post"
+            data-availability-url="{{ url_for('main.availability') }}"
+            data-calendar-url="{{ url_for('main.calendar_days') }}"
+            data-selected-time="{{ form_data.get('hora', '') }}"
+            {% if appointment %}data-exclude-appointment-id="{{ appointment.id }}"{% endif %}
+        >
+            <div class="form-field">
+                <label for="servicio_id">Servicio</label>
+                <select id="servicio_id" name="servicio_id" required>
+                    <option value="">Selecciona un servicio</option>
+                    {% for service in services %}
+                        <option value="{{ service.id }}" {% if form_data.get('servicio_id')|string == service.id|string %}selected{% endif %}>
+                            {{ service.nombre }} - {{ service.duracion_minutos }} min
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-field">
+                <label for="barbero_id">Barbero</label>
+                <select id="barbero_id" name="barbero_id">
+                    <option value="">Primero disponible</option>
+                    {% for barber in barbers %}
+                        <option value="{{ barber.id }}" {% if form_data.get('barbero_id')|string == barber.id|string %}selected{% endif %}>
+                            {{ barber.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-field full-width">
+                <label>Fecha</label>
+                <div class="calendar-shell">
+                    <div class="calendar-selected-line">
+                        <span class="panel-label">Dia seleccionado</span>
+                        <strong id="selected-date-label">Selecciona un dia</strong>
+                    </div>
+                    <div class="calendar-widget" data-initial-month="{{ form_data.get('fecha', today_iso)[:7] if form_data.get('fecha') else calendar_initial_month }}">
+                        <div class="calendar-header">
+                            <button class="calendar-nav" type="button" data-calendar-prev>&lt;</button>
+                            <strong class="calendar-current-month">Calendario</strong>
+                            <button class="calendar-nav" type="button" data-calendar-next>&gt;</button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span>Lun</span>
+                            <span>Mar</span>
+                            <span>Mie</span>
+                            <span>Jue</span>
+                            <span>Vie</span>
+                            <span>Sab</span>
+                            <span>Dom</span>
+                        </div>
+                        <div class="calendar-days"></div>
+                    </div>
+                </div>
+                <input id="fecha" name="fecha" type="hidden" value="{{ form_data.get('fecha', '') }}" required>
+            </div>
+
+            <div class="form-field full-width">
+                <label>Hora disponible</label>
+                <div id="availability-feedback" class="availability-feedback">Selecciona un dia para ver horarios.</div>
+                <div id="slots-container" class="slot-grid"></div>
+                <input id="hora" name="hora" type="hidden" value="{{ form_data.get('hora', '') }}" required>
+            </div>
+
+            <div class="form-field">
+                <label for="estado">Estado</label>
+                <select id="estado" name="estado" required>
+                    {% for key, label in status_labels.items() %}
+                        <option value="{{ key }}" {% if form_data.get('estado') == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-field">
+                <label for="nombre_cliente">Nombre</label>
+                <input id="nombre_cliente" name="nombre_cliente" type="text" value="{{ form_data.get('nombre_cliente', '') }}" required>
+            </div>
+
+            <div class="form-field">
+                <label for="telefono">Telefono</label>
+                <input id="telefono" name="telefono" type="tel" value="{{ form_data.get('telefono', '') }}" required>
+            </div>
+
+            <div class="form-field full-width">
+                <label for="nota">Nota</label>
+                <textarea id="nota" name="nota" rows="4">{{ form_data.get('nota', '') }}</textarea>
+            </div>
+
+            <button class="btn btn-primary" type="submit">{{ "Guardar cambios" if appointment else "Crear cita" }}</button>
+        </form>
+    </article>
+
+    <aside class="panel-card">
+        <div class="panel-card-header">
+            <h2>{{ "Resumen actual" if appointment else "Consejos para crear la cita" }}</h2>
+        </div>
+        {% if appointment %}
+            <div class="summary-grid">
+                <div>
+                    <span>Cliente</span>
+                    <strong>{{ appointment.nombre_cliente }}</strong>
+                </div>
+                <div>
+                    <span>Servicio</span>
+                    <strong>{{ appointment.servicio.nombre }}</strong>
+                </div>
+                <div>
+                    <span>Barbero</span>
+                    <strong>{{ appointment.barbero.nombre }}</strong>
+                </div>
+                <div>
+                    <span>Fecha</span>
+                    <strong>{{ appointment.fecha|display_date }}</strong>
+                </div>
+                <div>
+                    <span>Hora</span>
+                    <strong>{{ appointment.hora|display_time }}</strong>
+                </div>
+                <div>
+                    <span>Estado</span>
+                    <strong>{{ status_labels[appointment.estado] }}</strong>
+                </div>
+            </div>
+        {% else %}
+            <ul class="feature-list">
+                <li>Selecciona primero el servicio para activar el calendario.</li>
+                <li>El sistema bloqueara horarios fuera de agenda o con conflicto.</li>
+                <li>Puedes crear la cita como pendiente o confirmada.</li>
+            </ul>
+        {% endif %}
+    </aside>
+</section>
+{% endblock %}

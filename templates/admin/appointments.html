@@ -1,0 +1,151 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Citas | {{ global_settings.nombre_negocio }}{% endblock %}
+{% block admin_heading %}Gestion de citas{% endblock %}
+
+{% block admin_content %}
+<section class="panel-card">
+    <form class="filter-bar" method="get">
+        <div class="form-field compact">
+            <label for="date">Fecha</label>
+            <input id="date" name="date" type="date" value="{{ selected_date.isoformat() }}">
+        </div>
+        <div class="form-field compact">
+            <label for="status">Estado</label>
+            <select id="status" name="status">
+                <option value="">Todos</option>
+                {% for key, label in status_labels.items() %}
+                    <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-field compact">
+            <label for="barber_id">Barbero</label>
+            <select id="barber_id" name="barber_id">
+                <option value="">Todos</option>
+                {% for barber in barbers %}
+                    <option value="{{ barber.id }}" {% if selected_barber_id == barber.id %}selected{% endif %}>{{ barber.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button class="btn btn-secondary" type="submit">Filtrar</button>
+        <a class="btn btn-primary" href="{{ url_for('admin.new_appointment') }}">Nueva cita</a>
+    </form>
+</section>
+
+<section class="admin-grid two-col">
+    <article class="panel-card">
+        <div class="panel-card-header">
+            <h2>Agenda visual del dia</h2>
+        </div>
+        <div class="agenda-list">
+            {% for row in agenda_rows %}
+                <div class="agenda-row">
+                    <div class="agenda-time">{{ row.label }}</div>
+                    <div class="agenda-track">
+                        {% if row.entries %}
+                            {% for item in row.entries %}
+                                <a class="agenda-item agenda-{{ item.kind }}" href="{{ item.url }}">
+                                    <strong>{{ item.title }}</strong>
+                                    <span>{{ item.subtitle }}</span>
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <span class="empty-slot">Disponible</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-card-header">
+            <h2>Citas de {{ selected_date|display_date }}</h2>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Cliente</th>
+                        <th>Servicio</th>
+                        <th>Barbero</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in day_appointments %}
+                        <tr>
+                            <td>{{ appointment.hora|display_time }}</td>
+                            <td>
+                                <strong>{{ appointment.nombre_cliente }}</strong>
+                                <p>{{ appointment.telefono }}</p>
+                            </td>
+                            <td>{{ appointment.servicio.nombre }}</td>
+                            <td>{{ appointment.barbero.nombre }}</td>
+                            <td><span class="status-badge status-{{ appointment.estado }}">{{ status_labels[appointment.estado] }}</span></td>
+                            <td class="table-actions stacked-actions">
+                                <a class="text-link" href="{{ url_for('admin.edit_appointment', appointment_id=appointment.id) }}">Editar</a>
+                                <form method="post" action="{{ url_for('admin.update_appointment_status', appointment_id=appointment.id) }}">
+                                    <select name="estado" onchange="this.form.submit()">
+                                        {% for key, label in status_labels.items() %}
+                                            <option value="{{ key }}" {% if appointment.estado == key %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                                <form method="post" action="{{ url_for('admin.delete_appointment', appointment_id=appointment.id) }}">
+                                    <button class="text-button danger-text" type="submit">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6">No hay citas para esa fecha.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+
+<section class="panel-card">
+    <div class="panel-card-header">
+        <h2>Proximas citas</h2>
+    </div>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Cliente</th>
+                    <th>Servicio</th>
+                    <th>Barbero</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in upcoming_appointments %}
+                    <tr>
+                        <td>{{ appointment.fecha|display_date }}</td>
+                        <td>{{ appointment.hora|display_time }}</td>
+                        <td>{{ appointment.nombre_cliente }}</td>
+                        <td>{{ appointment.servicio.nombre }}</td>
+                        <td>{{ appointment.barbero.nombre }}</td>
+                        <td><span class="status-badge status-{{ appointment.estado }}">{{ status_labels[appointment.estado] }}</span></td>
+                        <td><a class="text-link" href="{{ url_for('admin.edit_appointment', appointment_id=appointment.id) }}">Abrir</a></td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7">No hay proximas citas.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

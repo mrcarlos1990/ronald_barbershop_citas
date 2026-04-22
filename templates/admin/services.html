@@ -1,0 +1,84 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Servicios | {{ global_settings.nombre_negocio }}{% endblock %}
+{% block admin_heading %}Servicios{% endblock %}
+
+{% block admin_content %}
+<section class="admin-grid two-col">
+    <article class="panel-card">
+        <div class="panel-card-header">
+            <h2>{{ "Editar servicio" if service_to_edit else "Nuevo servicio" }}</h2>
+        </div>
+        <form class="form-grid single-col" method="post">
+            {% if service_to_edit %}
+                <input type="hidden" name="service_id" value="{{ service_to_edit.id }}">
+            {% endif %}
+            <div class="form-field">
+                <label for="nombre">Nombre</label>
+                <input id="nombre" name="nombre" type="text" value="{{ service_to_edit.nombre if service_to_edit else '' }}" required>
+            </div>
+            <div class="form-field">
+                <label for="descripcion">Descripcion</label>
+                <textarea id="descripcion" name="descripcion" rows="4">{{ service_to_edit.descripcion if service_to_edit else '' }}</textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-field">
+                    <label for="duracion_minutos">Duracion (min)</label>
+                    <input id="duracion_minutos" name="duracion_minutos" type="number" min="5" value="{{ service_to_edit.duracion_minutos if service_to_edit else 30 }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="precio">Precio</label>
+                    <input id="precio" name="precio" type="number" min="0" step="0.01" value="{{ service_to_edit.precio if service_to_edit else 0 }}" required>
+                </div>
+            </div>
+            <label class="checkbox-field">
+                <input type="checkbox" name="activo" {% if service_to_edit and service_to_edit.activo or not service_to_edit %}checked{% endif %}>
+                <span>Servicio activo</span>
+            </label>
+            <button class="btn btn-primary" type="submit">{{ "Actualizar servicio" if service_to_edit else "Crear servicio" }}</button>
+        </form>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-card-header">
+            <h2>Catalogo actual</h2>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Servicio</th>
+                        <th>Duracion</th>
+                        <th>Precio</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for service in service_list %}
+                        <tr>
+                            <td>
+                                <strong>{{ service.nombre }}</strong>
+                                <p>{{ service.descripcion }}</p>
+                            </td>
+                            <td>{{ service.duracion_minutos }} min</td>
+                            <td>{{ service.precio|currency }}</td>
+                            <td><span class="status-badge status-{{ 'confirmada' if service.activo else 'cancelada' }}">{{ "Activo" if service.activo else "Inactivo" }}</span></td>
+                            <td class="table-actions">
+                                <a class="text-link" href="{{ url_for('admin.services', edit=service.id) }}">Editar</a>
+                                <form method="post" action="{{ url_for('admin.delete_service', service_id=service.id) }}">
+                                    <button class="text-button danger-text" type="submit">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5">No hay servicios registrados.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Horarios bloqueados | {{ global_settings.nombre_negocio }}{% endblock %}
+{% block admin_heading %}Bloqueo manual de horarios{% endblock %}
+
+{% block admin_content %}
+<section class="admin-grid two-col">
+    <article class="panel-card">
+        <div class="panel-card-header">
+            <h2>Nuevo bloqueo</h2>
+        </div>
+        <form class="form-grid" method="post">
+            <div class="form-field">
+                <label for="fecha">Fecha</label>
+                <input id="fecha" name="fecha" type="date" required>
+            </div>
+            <div class="form-field">
+                <label for="barbero_id">Barbero</label>
+                <select id="barbero_id" name="barbero_id">
+                    <option value="">Todos los barberos</option>
+                    {% for barber in barbers %}
+                        <option value="{{ barber.id }}">{{ barber.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-field">
+                <label for="hora_inicio">Hora inicio</label>
+                <input id="hora_inicio" name="hora_inicio" type="time" required>
+            </div>
+            <div class="form-field">
+                <label for="hora_fin">Hora fin</label>
+                <input id="hora_fin" name="hora_fin" type="time" required>
+            </div>
+            <div class="form-field full-width">
+                <label for="motivo">Motivo opcional</label>
+                <input id="motivo" name="motivo" type="text" placeholder="Ejemplo: almuerzo, mantenimiento, evento">
+            </div>
+            <button class="btn btn-primary" type="submit">Bloquear horario</button>
+        </form>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-card-header">
+            <h2>Bloqueos existentes</h2>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Horario</th>
+                        <th>Barbero</th>
+                        <th>Motivo</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for block in blocked_list %}
+                        <tr>
+                            <td>{{ block.fecha|display_date }}</td>
+                            <td>{{ block.hora_inicio|display_time }} - {{ block.hora_fin|display_time }}</td>
+                            <td>{{ block.barbero.nombre if block.barbero else "General" }}</td>
+                            <td>{{ block.motivo }}</td>
+                            <td class="table-actions">
+                                <form method="post" action="{{ url_for('admin.delete_blocked_slot', block_id=block.id) }}">
+                                    <button class="text-button danger-text" type="submit">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5">No hay horarios bloqueados.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+{% endblock %}

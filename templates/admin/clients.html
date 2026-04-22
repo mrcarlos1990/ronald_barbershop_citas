@@ -1,0 +1,53 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Clientes | {{ global_settings.nombre_negocio }}{% endblock %}
+{% block admin_heading %}Clientes{% endblock %}
+
+{% block admin_content %}
+<section class="panel-card">
+    <form class="filter-bar" method="get">
+        <div class="form-field compact grow">
+            <label for="q">Buscar cliente</label>
+            <input id="q" name="q" type="text" value="{{ search }}" placeholder="Nombre o telefono">
+        </div>
+        <button class="btn btn-secondary" type="submit">Buscar</button>
+    </form>
+</section>
+
+<section class="panel-card">
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Telefono</th>
+                    <th>Total citas</th>
+                    <th>Ultima visita</th>
+                    <th>Observaciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in client_list %}
+                    <tr>
+                        <td>{{ client.nombre }}</td>
+                        <td>{{ client.telefono }}</td>
+                        <td>{{ client.total_citas }}</td>
+                        <td>
+                            {% if client.ultima_cita %}
+                                {{ client.ultima_cita.fecha|display_date }} - {{ client.ultima_cita.hora|display_time }}
+                            {% else %}
+                                Sin visitas
+                            {% endif %}
+                        </td>
+                        <td>{{ client.notas or "-" }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5">No hay clientes registrados.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Cita confirmada | {{ global_settings.nombre_negocio }}{% endblock %}
+
+{% block content %}
+<section class="page-intro">
+    <div class="container narrow">
+        <span class="eyebrow">Reserva creada</span>
+        <h1>Tu cita fue registrada</h1>
+        <p>Revisa el resumen y usa el boton de WhatsApp para confirmar o compartir tu reserva.</p>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="container confirmation-layout">
+        <article class="summary-card">
+            <h2>Resumen de la cita</h2>
+            <div class="summary-grid">
+                <div>
+                    <span>Cliente</span>
+                    <strong>{{ appointment.nombre_cliente }}</strong>
+                </div>
+                <div>
+                    <span>Telefono</span>
+                    <strong>{{ appointment.telefono }}</strong>
+                </div>
+                <div>
+                    <span>Servicio</span>
+                    <strong>{{ appointment.servicio.nombre }}</strong>
+                </div>
+                <div>
+                    <span>Barbero</span>
+                    <strong>{{ appointment.barbero.nombre }}</strong>
+                </div>
+                <div>
+                    <span>Fecha</span>
+                    <strong>{{ appointment.fecha|display_date }}</strong>
+                </div>
+                <div>
+                    <span>Hora</span>
+                    <strong>{{ appointment.hora|display_time }}</strong>
+                </div>
+                <div>
+                    <span>Estado</span>
+                    <strong>{{ status_labels[appointment.estado] }}</strong>
+                </div>
+                <div>
+                    <span>Nota</span>
+                    <strong>{{ appointment.nota or "Sin nota adicional" }}</strong>
+                </div>
+            </div>
+            <div class="confirmation-actions">
+                <a class="btn btn-primary" href="{{ whatsapp_link }}" target="_blank" rel="noreferrer">Confirmar por WhatsApp</a>
+                <a class="btn btn-secondary" href="{{ url_for('main.booking_form') }}">Agendar otra cita</a>
+            </div>
+        </article>
+
+        <aside class="side-summary">
+            <div class="info-card">
+                <span class="panel-label">Enlace de reserva</span>
+                <h3>Comparte el acceso directo</h3>
+                <input class="copy-field" type="text" readonly value="{{ booking_url }}">
+            </div>
+            <div class="info-card subtle-card">
+                <span class="panel-label">wa.me reutilizable</span>
+                <h3>Mensaje automatico listo para usar</h3>
+                <input class="copy-field" type="text" readonly value="{{ reusable_whatsapp_link }}">
+            </div>
+        </aside>
+    </div>
+</section>
+{% endblock %}

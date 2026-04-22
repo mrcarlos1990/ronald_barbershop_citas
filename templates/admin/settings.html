@@ -1,0 +1,51 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Configuracion | {{ global_settings.nombre_negocio }}{% endblock %}
+{% block admin_heading %}Configuracion del negocio{% endblock %}
+
+{% block admin_content %}
+<section class="panel-card">
+    <div class="panel-card-header">
+        <h2>Marca, WhatsApp y horario laboral</h2>
+    </div>
+    <form class="form-grid" method="post">
+        <div class="form-field">
+            <label for="nombre_negocio">Nombre del negocio</label>
+            <input id="nombre_negocio" name="nombre_negocio" type="text" value="{{ settings_record.nombre_negocio }}" required>
+        </div>
+        <div class="form-field">
+            <label for="telefono_whatsapp">WhatsApp</label>
+            <input id="telefono_whatsapp" name="telefono_whatsapp" type="text" value="{{ settings_record.telefono_whatsapp }}" required>
+        </div>
+        <div class="form-field full-width">
+            <label for="eslogan">Eslogan</label>
+            <input id="eslogan" name="eslogan" type="text" value="{{ settings_record.eslogan }}" required>
+        </div>
+        <div class="form-field full-width">
+            <label for="direccion">Direccion</label>
+            <input id="direccion" name="direccion" type="text" value="{{ settings_record.direccion }}">
+        </div>
+        <div class="form-field">
+            <label for="hora_apertura">Hora de apertura</label>
+            <input id="hora_apertura" name="hora_apertura" type="time" value="{{ settings_record.hora_apertura.strftime('%H:%M') }}" required>
+        </div>
+        <div class="form-field">
+            <label for="hora_cierre">Hora de cierre</label>
+            <input id="hora_cierre" name="hora_cierre" type="time" value="{{ settings_record.hora_cierre.strftime('%H:%M') }}" required>
+        </div>
+        <div class="form-field">
+            <label for="intervalo_minutos">Intervalo</label>
+            <select id="intervalo_minutos" name="intervalo_minutos" required>
+                {% for interval in [15, 20, 30, 45, 60] %}
+                    <option value="{{ interval }}" {% if settings_record.intervalo_minutos == interval %}selected{% endif %}>{{ interval }} minutos</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-field full-width">
+            <label for="mensaje_bienvenida">Mensaje de bienvenida</label>
+            <textarea id="mensaje_bienvenida" name="mensaje_bienvenida" rows="3">{{ settings_record.mensaje_bienvenida }}</textarea>
+        </div>
+        <button class="btn btn-primary" type="submit">Guardar configuracion</button>
+    </form>
+</section>
+{% endblock %}

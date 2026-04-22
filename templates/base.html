@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ global_settings.nombre_negocio }}{% endblock %}</title>
+    <meta name="description" content="{{ global_settings.mensaje_bienvenida }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="{% block body_class %}public-body{% endblock %}">
+    <div class="site-bg"></div>
+
+    <header class="site-header">
+        <div class="container nav-shell">
+            <a class="brand-mark" href="{{ url_for('main.landing') }}">
+                <span class="brand-kicker">Premium Barber Booking</span>
+                <strong>{{ global_settings.nombre_negocio }}</strong>
+            </a>
+            <nav class="top-nav">
+                <a href="{{ url_for('main.landing') }}">Inicio</a>
+                <a href="{{ url_for('main.booking_form') }}">Agendar</a>
+                {% if current_admin %}
+                    <a href="{{ url_for('admin.dashboard') }}">Panel admin</a>
+                {% else %}
+                    <a href="{{ url_for('admin.login') }}">Admin</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container flash-stack">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-shell">
+            <div>
+                <strong>{{ global_settings.nombre_negocio }}</strong>
+                <p>{{ global_settings.eslogan }}</p>
+                <p class="developer-signature">Desarrollado por Ing. Amauri Feliz</p>
+            </div>
+            <div class="footer-meta">
+                <span>{{ global_settings.direccion }}</span>
+                <span>WhatsApp: {{ global_settings.telefono_whatsapp }}</span>
+                <span>&copy; {{ current_year }} {{ global_settings.nombre_negocio }}</span>
+            </div>
+        </div>
+    </footer>
+
+    {% if global_settings.telefono_whatsapp %}
+        <a class="floating-whatsapp" href="https://wa.me/{{ whatsapp_target }}" target="_blank" rel="noreferrer">
+            WhatsApp
+        </a>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

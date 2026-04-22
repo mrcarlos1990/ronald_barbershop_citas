@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Agendar cita | {{ settings.nombre_negocio }}{% endblock %}
+
+{% block content %}
+<section class="page-intro">
+    <div class="container narrow">
+        <span class="eyebrow">Reserva online</span>
+        <h1>Agenda tu proxima cita</h1>
+        <p>Selecciona servicio, barbero, fecha y hora en una experiencia optimizada para celular.</p>
+    </div>
+</section>
+
+<section class="section-block booking-section">
+    <div class="container booking-layout">
+        <div class="booking-panel">
+            <form
+                id="booking-form"
+                class="form-card"
+                method="post"
+                data-availability-url="{{ url_for('main.availability') }}"
+                data-calendar-url="{{ url_for('main.calendar_days') }}"
+                data-selected-time="{{ form_data.get('hora', '') }}"
+            >
+                <div class="form-card-header">
+                    <h2>Datos de la reserva</h2>
+                    <p>Completa el flujo y confirma la cita por WhatsApp.</p>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="servicio_id">Servicio</label>
+                        <select id="servicio_id" name="servicio_id" required>
+                            <option value="">Selecciona un servicio</option>
+                            {% for service in services %}
+                                <option value="{{ service.id }}" {% if form_data.get('servicio_id')|string == service.id|string %}selected{% endif %}>
+                                    {{ service.nombre }} - {{ service.duracion_minutos }} min - {{ service.precio|currency }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="barbero_id">Barbero</label>
+                        <select id="barbero_id" name="barbero_id">
+                            <option value="">Primero disponible</option>
+                            {% for barber in barbers %}
+                                <option value="{{ barber.id }}" {% if form_data.get('barbero_id')|string == barber.id|string %}selected{% endif %}>
+                                    {{ barber.nombre }}{% if barber.especialidad %} - {{ barber.especialidad }}{% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-field full-width">
+                        <label>Fecha</label>
+                        <div class="calendar-shell">
+                            <div class="calendar-selected-line">
+                                <span class="panel-label">Dia seleccionado</span>
+                                <strong id="selected-date-label">Selecciona un dia en el calendario</strong>
+                            </div>
+
+                            <div
+                                class="calendar-widget"
+                                data-initial-month="{{ form_data.get('fecha', today_iso)[:7] if form_data.get('fecha') else calendar_initial_month }}"
+                            >
+                                <div class="calendar-header">
+                                    <button class="calendar-nav" type="button" data-calendar-prev>&lt;</button>
+                                    <strong class="calendar-current-month">Calendario</strong>
+                                    <button class="calendar-nav" type="button" data-calendar-next>&gt;</button>
+                                </div>
+                                <div class="calendar-weekdays">
+                                    <span>Lun</span>
+                                    <span>Mar</span>
+                                    <span>Mie</span>
+                                    <span>Jue</span>
+                                    <span>Vie</span>
+                                    <span>Sab</span>
+                                    <span>Dom</span>
+                                </div>
+                                <div class="calendar-days"></div>
+                            </div>
+                        </div>
+                        <input id="fecha" name="fecha" type="hidden" value="{{ form_data.get('fecha', '') }}" required>
+                    </div>
+
+                    <div class="form-field full-width">
+                        <label>Hora disponible</label>
+                        <div id="availability-feedback" class="availability-feedback">
+                            Elige un servicio para activar el calendario y los horarios.
+                        </div>
+                        <div id="slots-container" class="slot-grid"></div>
+                        <input id="hora" name="hora" type="hidden" value="{{ form_data.get('hora', '') }}" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="nombre_cliente">Nombre</label>
+                        <input id="nombre_cliente" name="nombre_cliente" type="text" placeholder="Tu nombre completo" value="{{ form_data.get('nombre_cliente', '') }}" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="telefono">Telefono</label>
+                        <input id="telefono" name="telefono" type="tel" placeholder="8099846863" value="{{ form_data.get('telefono', '') }}" required>
+                    </div>
+
+                    <div class="form-field full-width">
+                        <label for="nota">Nota opcional</label>
+                        <textarea id="nota" name="nota" rows="4" placeholder="Ejemplo: fade bajo, barba perfilada, diseno lateral...">{{ form_data.get('nota', '') }}</textarea>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-full" type="submit">Confirmar cita</button>
+            </form>
+        </div>
+
+        <aside class="booking-sidebar">
+            <div class="info-card">
+                <span class="panel-label">Reserva premium</span>
+                <h3>Todo el flujo esta pensado para WhatsApp</h3>
+                <ul class="feature-list">
+                    <li>Calendario visual moderno y facil de usar en movil.</li>
+                    <li>Horarios dinamicos segun servicio, barbero y bloqueos.</li>
+                    <li>Confirmacion final con boton real de WhatsApp.</li>
+                </ul>
+            </div>
+
+            <div class="info-card subtle-card">
+                <span class="panel-label">Atajo directo</span>
+                <h3>Comparte este acceso con tus clientes</h3>
+                <p>Ideal para mensajes automaticos o enlaces enviados desde el chat de WhatsApp.</p>
+                <a class="btn btn-secondary btn-full" href="{{ landing_whatsapp_link }}" target="_blank" rel="noreferrer">Abrir mensaje de WhatsApp</a>
+            </div>
+        </aside>
+    </div>
+</section>
+{% endblock %}
