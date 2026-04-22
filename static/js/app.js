@@ -1,6 +1,113 @@
 document.addEventListener("DOMContentLoaded", () => {
+    initConfirmActions();
+    initPasswordConfirmation();
+    initRevealAnimations();
+    initCountUp();
     document.querySelectorAll("form[data-availability-url]").forEach(initBookingExperience);
 });
+
+function initConfirmActions() {
+    document.querySelectorAll("form[data-confirm]").forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            const message = form.dataset.confirm || "Deseas continuar con esta accion?";
+            if (!window.confirm(message)) {
+                event.preventDefault();
+            }
+        });
+    });
+}
+
+function initPasswordConfirmation() {
+    document.querySelectorAll("form").forEach((form) => {
+        const passwordInput = form.querySelector('input[name="password"]');
+        const confirmInput = form.querySelector('input[name="confirm_password"]');
+
+        if (!passwordInput || !confirmInput) {
+            return;
+        }
+
+        const validate = () => {
+            if (confirmInput.value && passwordInput.value !== confirmInput.value) {
+                confirmInput.setCustomValidity("Las contrasenas no coinciden.");
+            } else {
+                confirmInput.setCustomValidity("");
+            }
+        };
+
+        passwordInput.addEventListener("input", validate);
+        confirmInput.addEventListener("input", validate);
+        form.addEventListener("submit", validate);
+    });
+}
+
+function initRevealAnimations() {
+    const nodes = document.querySelectorAll("[data-reveal]");
+    if (!nodes.length || !("IntersectionObserver" in window)) {
+        nodes.forEach((node) => node.classList.add("is-visible"));
+        return;
+    }
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("is-visible");
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        { threshold: 0.16 }
+    );
+
+    nodes.forEach((node) => observer.observe(node));
+}
+
+function initCountUp() {
+    const counters = document.querySelectorAll("[data-countup]");
+    if (!counters.length) {
+        return;
+    }
+
+    const animateCounter = (element) => {
+        const target = Number(element.dataset.countup || 0);
+        if (Number.isNaN(target)) {
+            return;
+        }
+
+        const duration = 850;
+        const startTime = performance.now();
+
+        const frame = (now) => {
+            const progress = Math.min((now - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            element.textContent = Math.round(target * eased).toLocaleString("es-DO");
+            if (progress < 1) {
+                requestAnimationFrame(frame);
+            }
+        };
+
+        requestAnimationFrame(frame);
+    };
+
+    if (!("IntersectionObserver" in window)) {
+        counters.forEach(animateCounter);
+        return;
+    }
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    animateCounter(entry.target);
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        { threshold: 0.4 }
+    );
+
+    counters.forEach((counter) => observer.observe(counter));
+}
 
 function initBookingExperience(form) {
     const serviceInput = form.querySelector("#servicio_id");
@@ -332,7 +439,7 @@ function buildDisabledMonth(monthValue) {
             date: isoDate,
             day,
             available: false,
-            disabled: isPast || true,
+            disabled: true,
             slots_count: 0,
             is_today:
                 currentDate.getFullYear() === today.getFullYear() &&

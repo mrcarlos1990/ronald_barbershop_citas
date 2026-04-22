@@ -1,51 +1,253 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Configuracion | {{ global_settings.nombre_negocio }}{% endblock %}
-{% block admin_heading %}Configuracion del negocio{% endblock %}
+{% block title %}Ajustes del negocio | {{ global_settings.nombre_negocio }}{% endblock %}
+{% block admin_heading %}Ajustes del negocio{% endblock %}
 
 {% block admin_content %}
-<section class="panel-card">
-    <div class="panel-card-header">
-        <h2>Marca, WhatsApp y horario laboral</h2>
+<section class="panel-card hero-admin-card">
+    <div>
+        <span class="eyebrow">Marca y experiencia</span>
+        <h2>Personaliza tu barberia como un SaaS premium</h2>
+        <p>Configura identidad, contacto, colores, visuales y secciones publicas que se reflejan automaticamente en la landing del negocio.</p>
     </div>
-    <form class="form-grid" method="post">
-        <div class="form-field">
-            <label for="nombre_negocio">Nombre del negocio</label>
-            <input id="nombre_negocio" name="nombre_negocio" type="text" value="{{ settings_record.nombre_negocio }}" required>
-        </div>
-        <div class="form-field">
-            <label for="telefono_whatsapp">WhatsApp</label>
-            <input id="telefono_whatsapp" name="telefono_whatsapp" type="text" value="{{ settings_record.telefono_whatsapp }}" required>
-        </div>
-        <div class="form-field full-width">
-            <label for="eslogan">Eslogan</label>
-            <input id="eslogan" name="eslogan" type="text" value="{{ settings_record.eslogan }}" required>
-        </div>
-        <div class="form-field full-width">
-            <label for="direccion">Direccion</label>
-            <input id="direccion" name="direccion" type="text" value="{{ settings_record.direccion }}">
-        </div>
-        <div class="form-field">
-            <label for="hora_apertura">Hora de apertura</label>
-            <input id="hora_apertura" name="hora_apertura" type="time" value="{{ settings_record.hora_apertura.strftime('%H:%M') }}" required>
-        </div>
-        <div class="form-field">
-            <label for="hora_cierre">Hora de cierre</label>
-            <input id="hora_cierre" name="hora_cierre" type="time" value="{{ settings_record.hora_cierre.strftime('%H:%M') }}" required>
-        </div>
-        <div class="form-field">
-            <label for="intervalo_minutos">Intervalo</label>
-            <select id="intervalo_minutos" name="intervalo_minutos" required>
-                {% for interval in [15, 20, 30, 45, 60] %}
-                    <option value="{{ interval }}" {% if settings_record.intervalo_minutos == interval %}selected{% endif %}>{{ interval }} minutos</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="form-field full-width">
-            <label for="mensaje_bienvenida">Mensaje de bienvenida</label>
-            <textarea id="mensaje_bienvenida" name="mensaje_bienvenida" rows="3">{{ settings_record.mensaje_bienvenida }}</textarea>
-        </div>
-        <button class="btn btn-primary" type="submit">Guardar configuracion</button>
-    </form>
+    {% if current_tenant %}
+        <a class="btn btn-secondary" href="{{ url_for('business.public_business', tenant_slug=current_tenant.slug) }}" target="_blank" rel="noreferrer">Abrir landing publica</a>
+    {% endif %}
 </section>
+
+<form class="admin-content" method="post">
+    <section class="admin-grid two-col">
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <h2>Identidad del negocio</h2>
+            </div>
+            <div class="form-grid single-col">
+                <div class="form-field">
+                    <label for="business_name">Nombre de la barberia</label>
+                    <input id="business_name" name="business_name" type="text" value="{{ settings_record.business_name }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="slogan">Slogan</label>
+                    <input id="slogan" name="slogan" type="text" value="{{ settings_record.slogan }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="logo_url">Logo URL</label>
+                    <input id="logo_url" name="logo_url" type="url" value="{{ settings_record.logo_url or '' }}" placeholder="https://...">
+                </div>
+                <div class="form-field">
+                    <label for="banner_url">Banner o portada URL</label>
+                    <input id="banner_url" name="banner_url" type="url" value="{{ settings_record.banner_url or '' }}" placeholder="https://...">
+                </div>
+                <div class="form-field">
+                    <label for="featured_image_url">Imagen destacada</label>
+                    <input id="featured_image_url" name="featured_image_url" type="url" value="{{ appearance_record.featured_image_url or '' }}" placeholder="https://...">
+                </div>
+                <div class="form-field">
+                    <label for="visual_style">Estilo visual general</label>
+                    <select id="visual_style" name="visual_style">
+                        <option value="premium-barber" {% if appearance_record.visual_style == 'premium-barber' %}selected{% endif %}>Premium Barber</option>
+                        <option value="lux-dark" {% if appearance_record.visual_style == 'lux-dark' %}selected{% endif %}>Lux Dark</option>
+                        <option value="urban-gold" {% if appearance_record.visual_style == 'urban-gold' %}selected{% endif %}>Urban Gold</option>
+                    </select>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <h2>Contacto y ubicacion base</h2>
+            </div>
+            <div class="form-grid single-col">
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="phone">Telefono</label>
+                        <input id="phone" name="phone" type="text" value="{{ settings_record.phone or '' }}">
+                    </div>
+                    <div class="form-field">
+                        <label for="whatsapp">WhatsApp</label>
+                        <input id="whatsapp" name="whatsapp" type="text" value="{{ settings_record.whatsapp }}" required>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label for="email">Correo electronico</label>
+                    <input id="email" name="email" type="email" value="{{ settings_record.email or '' }}">
+                </div>
+                <div class="form-field">
+                    <label for="address">Direccion completa</label>
+                    <input id="address" name="address" type="text" value="{{ settings_record.address or '' }}">
+                </div>
+                <div class="form-field">
+                    <label for="location_reference">Referencia</label>
+                    <input id="location_reference" name="location_reference" type="text" value="{{ settings_record.location_reference or '' }}">
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="city">Ciudad</label>
+                        <input id="city" name="city" type="text" value="{{ settings_record.city or '' }}">
+                    </div>
+                    <div class="form-field">
+                        <label for="province_state">Provincia / Estado</label>
+                        <input id="province_state" name="province_state" type="text" value="{{ settings_record.province_state or '' }}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="country">Pais</label>
+                        <input id="country" name="country" type="text" value="{{ settings_record.country or '' }}">
+                    </div>
+                    <div class="form-field">
+                        <label for="google_maps_url">Enlace Google Maps</label>
+                        <input id="google_maps_url" name="google_maps_url" type="url" value="{{ settings_record.google_maps_url or '' }}" placeholder="https://maps.google.com/...">
+                    </div>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section class="admin-grid two-col">
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <h2>Horario y agenda</h2>
+            </div>
+            <div class="form-grid single-col">
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="hora_apertura">Apertura</label>
+                        <input id="hora_apertura" name="hora_apertura" type="time" value="{{ settings_record.hora_apertura.strftime('%H:%M') }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="hora_cierre">Cierre</label>
+                        <input id="hora_cierre" name="hora_cierre" type="time" value="{{ settings_record.hora_cierre.strftime('%H:%M') }}" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="intervalo_minutos">Intervalo</label>
+                        <select id="intervalo_minutos" name="intervalo_minutos">
+                            {% for interval in [15, 20, 30, 45, 60] %}
+                                <option value="{{ interval }}" {% if settings_record.intervalo_minutos == interval %}selected{% endif %}>{{ interval }} minutos</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="working_days">Dias laborables</label>
+                        <input id="working_days" name="working_days" type="text" value="{{ settings_record.working_days or '' }}" placeholder="Lunes a Sabado">
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label for="mensaje_bienvenida">Mensaje de bienvenida</label>
+                    <textarea id="mensaje_bienvenida" name="mensaje_bienvenida" rows="4">{{ settings_record.mensaje_bienvenida or '' }}</textarea>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <h2>Apariencia visual</h2>
+            </div>
+            <div class="form-grid single-col">
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="primary_color">Color principal</label>
+                        <input id="primary_color" name="primary_color" type="color" value="{{ settings_record.primary_color or '#d2b271' }}">
+                    </div>
+                    <div class="form-field">
+                        <label for="secondary_color">Color secundario</label>
+                        <input id="secondary_color" name="secondary_color" type="color" value="{{ settings_record.secondary_color or '#7f1f1f' }}">
+                    </div>
+                </div>
+                <div class="settings-preview-card">
+                    <span class="panel-label">Vista previa</span>
+                    <div class="brand-preview">
+                        <div class="brand-preview-swatch" style="background: {{ settings_record.primary_color or '#d2b271' }}"></div>
+                        <div class="brand-preview-swatch" style="background: {{ settings_record.secondary_color or '#7f1f1f' }}"></div>
+                        <strong>{{ settings_record.business_name }}</strong>
+                    </div>
+                </div>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_services" {% if appearance_record.show_services %}checked{% endif %}>
+                    <span>Mostrar servicios destacados</span>
+                </label>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_barbers" {% if appearance_record.show_barbers %}checked{% endif %}>
+                    <span>Mostrar barberos</span>
+                </label>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_gallery_styles" {% if settings_record.show_gallery_styles %}checked{% endif %}>
+                    <span>Mostrar galeria de estilos</span>
+                </label>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_promotions" {% if settings_record.show_promotions %}checked{% endif %}>
+                    <span>Mostrar promociones</span>
+                </label>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_testimonials" {% if settings_record.show_testimonials %}checked{% endif %}>
+                    <span>Mostrar testimonios</span>
+                </label>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_map" {% if settings_record.show_map %}checked{% endif %}>
+                    <span>Mostrar mapa y ubicacion</span>
+                </label>
+            </div>
+        </article>
+    </section>
+
+    <section class="admin-grid two-col">
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <h2>Redes sociales</h2>
+            </div>
+            <div class="form-grid single-col">
+                <div class="form-field">
+                    <label for="instagram_url">Instagram</label>
+                    <input id="instagram_url" name="instagram_url" type="url" value="{{ social_map.get('instagram').url if social_map.get('instagram') else '' }}" placeholder="https://instagram.com/...">
+                </div>
+                <div class="form-field">
+                    <label for="facebook_url">Facebook</label>
+                    <input id="facebook_url" name="facebook_url" type="url" value="{{ social_map.get('facebook').url if social_map.get('facebook') else '' }}" placeholder="https://facebook.com/...">
+                </div>
+                <div class="form-field">
+                    <label for="tiktok_url">TikTok</label>
+                    <input id="tiktok_url" name="tiktok_url" type="url" value="{{ social_map.get('tiktok').url if social_map.get('tiktok') else '' }}" placeholder="https://tiktok.com/@...">
+                </div>
+            </div>
+        </article>
+
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <h2>Resumen de publicacion</h2>
+            </div>
+            <div class="summary-grid">
+                <div>
+                    <span>Slug publico</span>
+                    <strong>{{ current_tenant.slug if current_tenant else '-' }}</strong>
+                </div>
+                <div>
+                    <span>Dominio</span>
+                    <strong>{{ current_tenant.domain_url if current_tenant else '-' }}</strong>
+                </div>
+                <div>
+                    <span>Direccion visible</span>
+                    <strong>{{ location_record.address or settings_record.address or 'Pendiente' }}</strong>
+                </div>
+                <div>
+                    <span>Mapa</span>
+                    <strong>{{ 'Activo' if settings_record.show_map else 'Oculto' }}</strong>
+                </div>
+                <div>
+                    <span>Galeria</span>
+                    <strong>{{ 'Activa' if settings_record.show_gallery_styles else 'Oculta' }}</strong>
+                </div>
+                <div>
+                    <span>Promociones</span>
+                    <strong>{{ 'Activas' if settings_record.show_promotions else 'Ocultas' }}</strong>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section class="panel-card">
+        <button class="btn btn-primary" type="submit">Guardar ajustes del negocio</button>
+    </section>
+</form>
 {% endblock %}

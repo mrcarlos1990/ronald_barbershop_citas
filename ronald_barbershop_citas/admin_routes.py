@@ -4,6 +4,7 @@ from datetime import date, datetime
 from urllib.parse import urlparse
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask_login import current_user, logout_user
 from sqlalchemy import and_, or_
 
 from .decorators import admin_required
@@ -12,6 +13,8 @@ from .utils import (
     STATUS_LABELS,
     build_agenda_rows,
     get_business_settings,
+    get_current_tenant_id,
+    is_valid_email,
     is_valid_phone,
     normalize_phone,
     parse_date,
@@ -30,9 +33,9 @@ def _is_safe_internal_path(path: str | None) -> bool:
     return parsed.scheme == "" and parsed.netloc == "" and path.startswith("/")
 
 
-def _load_active_form_options():
-    services = Service.query.filter_by(activo=True).order_by(Service.nombre.asc()).all()
-    barbers = Barber.query.filter_by(activo=True).order_by(Barber.nombre.asc()).all()
+def _load_active_form_options(tenant_id: int):
+    services = Service.query.filter_by(tenant_id=tenant_id, activo=True).order_by(Service.nombre.asc()).all()
+    barbers = Barber.query.filter_by(tenant_id=tenant_id, activo=True).order_by(Barber.nombre.asc()).all()
     return services, barbers
 
 
@@ -62,9 +65,10 @@ def _default_appointment_form(appointment: Appointment | None = None) -> dict:
 
 
 def _save_appointment_from_request(appointment: Appointment | None = None) -> tuple[Appointment | None, dict]:
+    tenant_id = get_current_tenant_id()
     form_data = request.form.to_dict()
-    service = db.session.get(Service, request.form.get("servicio_id", type=int) or 0)
-    preferred_barber = db.session.get(Barber, request.form.get("barbero_id", type=int) or 0)
+    service = Service.query.filter_by(id=request.form.get("servicio_id", type=int) or 0, tenant_id=tenant_id).first()
+    preferred_barber = Barber.query.filter_by(id=request.form.get("barbero_id", type=int) or 0, tenant_id=tenant_id).first()
     booking_date = parse_date(request.form.get("fecha"))
     booking_time = parse_time(request.form.get("hora"))
     customer_name = (request.form.get("nombre_cliente") or "").strip()
@@ -94,6 +98,7 @@ def _save_appointment_from_request(appointment: Appointment | None = None) -> tu
             service.duracion_minutos,
             preferred_barber_id=preferred_barber.id if preferred_barber else None,
             exclude_appointment_id=appointment.id if appointment else None,
+            tenant_id=tenant_id,
         )
         if assigned_barber is None:
             errors.append("Ese horario no esta disponible para el servicio y barbero seleccionados.")
@@ -104,9 +109,9 @@ def _save_appointment_from_request(appointment: Appointment | None = None) -> tu
         return None, form_data
 
     normalized_phone = normalize_phone(customer_phone)
-    client = Client.query.filter_by(telefono=normalized_phone).first()
+    client = Client.query.filter_by(tenant_id=tenant_id, telefono=normalized_phone).first()
     if client is None:
-        client = Client(nombre=customer_name, telefono=normalized_phone, notas=note or None)
+        client = Client(tenant_id=tenant_id, nombre=customer_name, telefono=normalized_phone, notas=note or None)
         db.session.add(client)
         db.session.flush()
     else:
@@ -118,6 +123,7 @@ def _save_appointment_from_request(appointment: Appointment | None = None) -> tu
         appointment = Appointment()
         db.session.add(appointment)
 
+    appointment.tenant_id = tenant_id
     appointment.cliente_id = client.id
     appointment.servicio_id = service.id
     appointment.barbero_id = assigned_barber.id
@@ -144,8 +150,11 @@ def login():
         admin = AdminUser.query.filter(db.func.lower(AdminUser.username) == username.lower()).first()
 
         if admin and admin.check_password(password):
+            if current_user.is_authenticated:
+                logout_user()
             session.clear()
             session["admin_user_id"] = admin.id
+            session["admin_tenant_id"] = admin.tenant_id
             flash("Sesion iniciada correctamente.", "success")
             next_url = request.args.get("next")
             if _is_safe_internal_path(next_url):
@@ -168,10 +177,12 @@ def logout():
 @admin_bp.route("/")
 @admin_required
 def dashboard():
+    tenant_id = get_current_tenant_id()
     today = date.today()
-    today_appointments = Appointment.query.filter_by(fecha=today).order_by(Appointment.hora.asc()).all()
+    today_appointments = Appointment.query.filter_by(tenant_id=tenant_id, fecha=today).order_by(Appointment.hora.asc()).all()
     upcoming_appointments = (
         Appointment.query.filter(
+            Appointment.tenant_id == tenant_id,
             Appointment.estado != "cancelada",
             or_(
                 Appointment.fecha > today,
@@ -182,16 +193,53 @@ def dashboard():
         .limit(8)
         .all()
     )
-    recent_clients = Client.query.order_by(Client.fecha_creacion.desc()).limit(6).all()
+    recent_clients = Client.query.filter_by(tenant_id=tenant_id).order_by(Client.fecha_creacion.desc()).limit(6).all()
+
+    top_service_row = (
+        db.session.query(Service.nombre, db.func.count(Appointment.id).label("total"))
+        .select_from(Appointment)
+        .join(Service, Service.id == Appointment.servicio_id)
+        .filter(Appointment.tenant_id == tenant_id, Appointment.estado != "cancelada")
+        .group_by(Service.nombre)
+        .order_by(db.desc("total"))
+        .first()
+    )
+    top_barber_row = (
+        db.session.query(Barber.nombre, db.func.count(Appointment.id).label("total"))
+        .select_from(Appointment)
+        .join(Barber, Barber.id == Appointment.barbero_id)
+        .filter(Appointment.tenant_id == tenant_id, Appointment.estado != "cancelada")
+        .group_by(Barber.nombre)
+        .order_by(db.desc("total"))
+        .first()
+    )
+    busiest_hours = (
+        db.session.query(Appointment.hora, db.func.count(Appointment.id).label("total"))
+        .filter(Appointment.tenant_id == tenant_id, Appointment.estado != "cancelada")
+        .group_by(Appointment.hora)
+        .order_by(db.desc("total"), Appointment.hora.asc())
+        .limit(3)
+        .all()
+    )
+    estimated_income = (
+        db.session.query(db.func.coalesce(db.func.sum(Service.precio), 0))
+        .select_from(Appointment)
+        .join(Service, Service.id == Appointment.servicio_id)
+        .filter(Appointment.tenant_id == tenant_id, Appointment.estado.in_(("confirmada", "completada")))
+        .scalar()
+        or 0
+    )
 
     stats = {
-        "total": Appointment.query.count(),
-        "pendientes": Appointment.query.filter_by(estado="pendiente").count(),
-        "confirmadas": Appointment.query.filter_by(estado="confirmada").count(),
-        "completadas": Appointment.query.filter_by(estado="completada").count(),
-        "canceladas": Appointment.query.filter_by(estado="cancelada").count(),
-        "citas_hoy": Appointment.query.filter_by(fecha=today).count(),
-        "clientes": Client.query.count(),
+        "total": Appointment.query.filter_by(tenant_id=tenant_id).count(),
+        "pendientes": Appointment.query.filter_by(tenant_id=tenant_id, estado="pendiente").count(),
+        "confirmadas": Appointment.query.filter_by(tenant_id=tenant_id, estado="confirmada").count(),
+        "completadas": Appointment.query.filter_by(tenant_id=tenant_id, estado="completada").count(),
+        "canceladas": Appointment.query.filter_by(tenant_id=tenant_id, estado="cancelada").count(),
+        "citas_hoy": Appointment.query.filter_by(tenant_id=tenant_id, fecha=today).count(),
+        "clientes": Client.query.filter_by(tenant_id=tenant_id).count(),
+        "nuevos_clientes_hoy": Client.query.filter(Client.tenant_id == tenant_id, db.func.date(Client.fecha_creacion) == today.isoformat()).count(),
+        "ingresos_estimados": estimated_income,
     }
 
     return render_template(
@@ -200,12 +248,16 @@ def dashboard():
         today_appointments=today_appointments,
         upcoming_appointments=upcoming_appointments,
         recent_clients=recent_clients,
+        top_service=top_service_row,
+        top_barber=top_barber_row,
+        busiest_hours=busiest_hours,
     )
 
 
 @admin_bp.route("/services", methods=["GET", "POST"])
 @admin_required
 def services():
+    tenant_id = get_current_tenant_id()
     service_to_edit = None
 
     if request.method == "POST":
@@ -214,8 +266,11 @@ def services():
         description = (request.form.get("descripcion") or "").strip()
         duration_minutes = request.form.get("duracion_minutos", type=int) or 0
         price = request.form.get("precio", type=float)
+        category = (request.form.get("categoria") or "").strip()
+        image_url = (request.form.get("image_url") or "").strip()
         active = request.form.get("activo") == "on"
         existing_service = Service.query.filter(
+            Service.tenant_id == tenant_id,
             db.func.lower(Service.nombre) == name.lower(),
             Service.id != (service_id or 0),
         ).first()
@@ -228,18 +283,20 @@ def services():
             flash("Ya existe un servicio con ese nombre.", "danger")
         else:
             if service_id:
-                service = db.session.get(Service, service_id)
+                service = Service.query.filter_by(id=service_id, tenant_id=tenant_id).first()
                 if service is None:
                     flash("El servicio no existe.", "danger")
                     return redirect(url_for("admin.services"))
             else:
-                service = Service()
+                service = Service(tenant_id=tenant_id)
                 db.session.add(service)
 
             service.nombre = name
             service.descripcion = description or None
             service.duracion_minutos = duration_minutes
             service.precio = price
+            service.categoria = category or None
+            service.image_url = image_url or None
             service.activo = active
             db.session.commit()
             flash("Servicio guardado correctamente.", "success")
@@ -247,16 +304,16 @@ def services():
 
     edit_id = request.args.get("edit", type=int)
     if edit_id:
-        service_to_edit = db.session.get(Service, edit_id)
+        service_to_edit = Service.query.filter_by(id=edit_id, tenant_id=tenant_id).first()
 
-    service_list = Service.query.order_by(Service.activo.desc(), Service.nombre.asc()).all()
+    service_list = Service.query.filter_by(tenant_id=tenant_id).order_by(Service.activo.desc(), Service.nombre.asc()).all()
     return render_template("admin/services.html", service_list=service_list, service_to_edit=service_to_edit)
 
 
 @admin_bp.route("/services/<int:service_id>/delete", methods=["POST"])
 @admin_required
 def delete_service(service_id: int):
-    service = db.session.get(Service, service_id)
+    service = Service.query.filter_by(id=service_id, tenant_id=get_current_tenant_id()).first()
     if service is None:
         flash("El servicio no existe.", "warning")
     elif service.citas.count() > 0:
@@ -271,6 +328,7 @@ def delete_service(service_id: int):
 @admin_bp.route("/barbers", methods=["GET", "POST"])
 @admin_required
 def barbers():
+    tenant_id = get_current_tenant_id()
     barber_to_edit = None
 
     if request.method == "POST":
@@ -282,6 +340,7 @@ def barbers():
         bio = (request.form.get("bio") or "").strip()
         active = request.form.get("activo") == "on"
         existing_barber = Barber.query.filter(
+            Barber.tenant_id == tenant_id,
             db.func.lower(Barber.nombre) == name.lower(),
             Barber.id != (barber_id or 0),
         ).first()
@@ -294,12 +353,12 @@ def barbers():
             flash("Ya existe un barbero con ese nombre.", "danger")
         else:
             if barber_id:
-                barber = db.session.get(Barber, barber_id)
+                barber = Barber.query.filter_by(id=barber_id, tenant_id=tenant_id).first()
                 if barber is None:
                     flash("El barbero no existe.", "danger")
                     return redirect(url_for("admin.barbers"))
             else:
-                barber = Barber()
+                barber = Barber(tenant_id=tenant_id)
                 db.session.add(barber)
 
             barber.nombre = name
@@ -314,16 +373,16 @@ def barbers():
 
     edit_id = request.args.get("edit", type=int)
     if edit_id:
-        barber_to_edit = db.session.get(Barber, edit_id)
+        barber_to_edit = Barber.query.filter_by(id=edit_id, tenant_id=tenant_id).first()
 
-    barber_list = Barber.query.order_by(Barber.activo.desc(), Barber.nombre.asc()).all()
+    barber_list = Barber.query.filter_by(tenant_id=tenant_id).order_by(Barber.activo.desc(), Barber.nombre.asc()).all()
     return render_template("admin/barbers.html", barber_list=barber_list, barber_to_edit=barber_to_edit)
 
 
 @admin_bp.route("/barbers/<int:barber_id>/delete", methods=["POST"])
 @admin_required
 def delete_barber(barber_id: int):
-    barber = db.session.get(Barber, barber_id)
+    barber = Barber.query.filter_by(id=barber_id, tenant_id=get_current_tenant_id()).first()
     if barber is None:
         flash("El barbero no existe.", "warning")
     elif barber.citas.count() > 0 or barber.horarios_bloqueados.count() > 0:
@@ -338,12 +397,13 @@ def delete_barber(barber_id: int):
 @admin_bp.route("/appointments")
 @admin_required
 def appointments():
+    tenant_id = get_current_tenant_id()
     selected_date = parse_date(request.args.get("date")) or date.today()
     selected_status = (request.args.get("status") or "").strip()
     selected_barber_id = request.args.get("barber_id", type=int)
-    barbers = Barber.query.order_by(Barber.nombre.asc()).all()
+    barbers = Barber.query.filter_by(tenant_id=tenant_id).order_by(Barber.nombre.asc()).all()
 
-    appointment_query = Appointment.query.filter_by(fecha=selected_date)
+    appointment_query = Appointment.query.filter_by(tenant_id=tenant_id, fecha=selected_date)
     if selected_status:
         appointment_query = appointment_query.filter_by(estado=selected_status)
     if selected_barber_id:
@@ -351,7 +411,7 @@ def appointments():
 
     day_appointments = appointment_query.order_by(Appointment.hora.asc()).all()
 
-    upcoming_query = Appointment.query.filter(Appointment.fecha >= date.today()).order_by(
+    upcoming_query = Appointment.query.filter(Appointment.tenant_id == tenant_id, Appointment.fecha >= date.today()).order_by(
         Appointment.fecha.asc(),
         Appointment.hora.asc(),
     )
@@ -361,7 +421,7 @@ def appointments():
         upcoming_query = upcoming_query.filter_by(barbero_id=selected_barber_id)
 
     upcoming_appointments = upcoming_query.limit(20).all()
-    agenda_rows = build_agenda_rows(selected_date)
+    agenda_rows = build_agenda_rows(selected_date, tenant_id=tenant_id)
 
     return render_template(
         "admin/appointments.html",
@@ -378,7 +438,8 @@ def appointments():
 @admin_bp.route("/appointments/new", methods=["GET", "POST"])
 @admin_required
 def new_appointment():
-    services, barbers = _load_active_form_options()
+    tenant_id = get_current_tenant_id()
+    services, barbers = _load_active_form_options(tenant_id)
     form_data = _default_appointment_form()
 
     if request.method == "POST":
@@ -401,12 +462,13 @@ def new_appointment():
 @admin_bp.route("/appointments/<int:appointment_id>/edit", methods=["GET", "POST"])
 @admin_required
 def edit_appointment(appointment_id: int):
-    appointment = db.session.get(Appointment, appointment_id)
+    tenant_id = get_current_tenant_id()
+    appointment = Appointment.query.filter_by(id=appointment_id, tenant_id=tenant_id).first()
     if appointment is None:
         flash("La cita no existe.", "warning")
         return redirect(url_for("admin.appointments"))
 
-    services, barbers = _load_active_form_options()
+    services, barbers = _load_active_form_options(tenant_id)
     form_data = _default_appointment_form(appointment)
 
     if request.method == "POST":
@@ -429,7 +491,7 @@ def edit_appointment(appointment_id: int):
 @admin_bp.route("/appointments/<int:appointment_id>/status", methods=["POST"])
 @admin_required
 def update_appointment_status(appointment_id: int):
-    appointment = db.session.get(Appointment, appointment_id)
+    appointment = Appointment.query.filter_by(id=appointment_id, tenant_id=get_current_tenant_id()).first()
     new_status = (request.form.get("estado") or "").strip().lower()
 
     if appointment and new_status in STATUS_LABELS:
@@ -446,7 +508,7 @@ def update_appointment_status(appointment_id: int):
 @admin_bp.route("/appointments/<int:appointment_id>/delete", methods=["POST"])
 @admin_required
 def delete_appointment(appointment_id: int):
-    appointment = db.session.get(Appointment, appointment_id)
+    appointment = Appointment.query.filter_by(id=appointment_id, tenant_id=get_current_tenant_id()).first()
     if appointment is None:
         flash("La cita no existe.", "warning")
         return redirect(url_for("admin.appointments"))
@@ -461,6 +523,7 @@ def delete_appointment(appointment_id: int):
 @admin_bp.route("/blocked-slots", methods=["GET", "POST"])
 @admin_required
 def blocked_slots():
+    tenant_id = get_current_tenant_id()
     if request.method == "POST":
         booking_date = parse_date(request.form.get("fecha"))
         start_time = parse_time(request.form.get("hora_inicio"))
@@ -474,6 +537,7 @@ def blocked_slots():
             flash("No puedes bloquear fechas pasadas.", "danger")
         else:
             block = BlockedSchedule(
+                tenant_id=tenant_id,
                 fecha=booking_date,
                 hora_inicio=start_time,
                 hora_fin=end_time,
@@ -485,15 +549,15 @@ def blocked_slots():
             flash("Horario bloqueado correctamente.", "success")
             return redirect(url_for("admin.blocked_slots"))
 
-    barbers = Barber.query.filter_by(activo=True).order_by(Barber.nombre.asc()).all()
-    blocked_list = BlockedSchedule.query.order_by(BlockedSchedule.fecha.desc(), BlockedSchedule.hora_inicio.desc()).all()
+    barbers = Barber.query.filter_by(tenant_id=tenant_id, activo=True).order_by(Barber.nombre.asc()).all()
+    blocked_list = BlockedSchedule.query.filter_by(tenant_id=tenant_id).order_by(BlockedSchedule.fecha.desc(), BlockedSchedule.hora_inicio.desc()).all()
     return render_template("admin/blocked_slots.html", barbers=barbers, blocked_list=blocked_list)
 
 
 @admin_bp.route("/blocked-slots/<int:block_id>/delete", methods=["POST"])
 @admin_required
 def delete_blocked_slot(block_id: int):
-    block = db.session.get(BlockedSchedule, block_id)
+    block = BlockedSchedule.query.filter_by(id=block_id, tenant_id=get_current_tenant_id()).first()
     if block:
         db.session.delete(block)
         db.session.commit()
@@ -503,53 +567,86 @@ def delete_blocked_slot(block_id: int):
     return redirect(url_for("admin.blocked_slots"))
 
 
-@admin_bp.route("/clients")
+@admin_bp.route("/clients", methods=["GET", "POST"])
 @admin_required
 def clients():
+    tenant_id = get_current_tenant_id()
+    client_to_edit = None
     search = (request.args.get("q") or "").strip()
-    client_query = Client.query.order_by(Client.fecha_creacion.desc())
+
+    if request.method == "POST":
+        client_id = request.form.get("client_id", type=int)
+        client = Client.query.filter_by(id=client_id or 0, tenant_id=tenant_id).first()
+        if client is None:
+            flash("El cliente no existe.", "danger")
+            return redirect(url_for("admin.clients"))
+
+        name = (request.form.get("nombre") or "").strip()
+        username = (request.form.get("username") or "").strip()
+        email = (request.form.get("email") or "").strip().lower()
+        phone = (request.form.get("telefono") or "").strip()
+        notes = (request.form.get("notas") or "").strip()
+        active = request.form.get("activo") == "on"
+
+        errors = []
+        if not name:
+            errors.append("El nombre del cliente es obligatorio.")
+        if not username:
+            errors.append("El username es obligatorio.")
+        elif Client.query.filter(Client.tenant_id == tenant_id, db.func.lower(Client.username) == username.lower(), Client.id != client.id).first():
+            errors.append("Ese username ya esta en uso.")
+        if email:
+            if not is_valid_email(email):
+                errors.append("Ingresa un correo valido.")
+            elif Client.query.filter(Client.tenant_id == tenant_id, db.func.lower(Client.email) == email.lower(), Client.id != client.id).first():
+                errors.append("Ese correo ya esta registrado.")
+        if not is_valid_phone(phone):
+            errors.append("Ingresa un telefono valido.")
+        elif Client.query.filter(Client.tenant_id == tenant_id, Client.telefono == normalize_phone(phone), Client.id != client.id).first():
+            errors.append("Ese telefono ya pertenece a otro cliente.")
+
+        if errors:
+            for error in errors:
+                flash(error, "danger")
+        else:
+            client.nombre = name
+            client.username = username
+            client.email = email or None
+            client.telefono = normalize_phone(phone)
+            client.notas = notes or None
+            client.activo = active
+            db.session.commit()
+            flash("Cliente actualizado correctamente.", "success")
+            return redirect(url_for("admin.clients"))
+
+    edit_id = request.args.get("edit", type=int)
+    if edit_id:
+        client_to_edit = Client.query.filter_by(id=edit_id, tenant_id=tenant_id).first()
+
+    client_query = Client.query.filter_by(tenant_id=tenant_id).order_by(Client.fecha_creacion.desc())
 
     if search:
         like_term = f"%{search}%"
         client_query = client_query.filter(
             or_(
                 Client.nombre.ilike(like_term),
+                Client.username.ilike(like_term),
+                Client.email.ilike(like_term),
                 Client.telefono.ilike(like_term),
             )
         )
 
     client_list = client_query.all()
-    return render_template("admin/clients.html", client_list=client_list, search=search)
+    return render_template(
+        "admin/clients.html",
+        client_list=client_list,
+        search=search,
+        client_to_edit=client_to_edit,
+    )
 
 
-@admin_bp.route("/settings", methods=["GET", "POST"])
+@admin_bp.route("/settings-legacy", methods=["GET"])
 @admin_required
 def settings():
-    settings_record = get_business_settings()
-
-    if request.method == "POST":
-        opening_time = parse_time(request.form.get("hora_apertura"))
-        closing_time = parse_time(request.form.get("hora_cierre"))
-        interval = request.form.get("intervalo_minutos", type=int) or 30
-        whatsapp_phone = (request.form.get("telefono_whatsapp") or "").strip()
-
-        if not opening_time or not closing_time or opening_time >= closing_time:
-            flash("Define un horario laboral valido.", "danger")
-        elif interval not in {15, 20, 30, 45, 60}:
-            flash("El intervalo debe ser de 15, 20, 30, 45 o 60 minutos.", "danger")
-        elif not is_valid_phone(whatsapp_phone):
-            flash("Ingresa un numero de WhatsApp valido.", "danger")
-        else:
-            settings_record.nombre_negocio = (request.form.get("nombre_negocio") or "").strip() or settings_record.nombre_negocio
-            settings_record.eslogan = (request.form.get("eslogan") or "").strip() or settings_record.eslogan
-            settings_record.telefono_whatsapp = whatsapp_phone
-            settings_record.direccion = (request.form.get("direccion") or "").strip()
-            settings_record.mensaje_bienvenida = (request.form.get("mensaje_bienvenida") or "").strip() or settings_record.mensaje_bienvenida
-            settings_record.hora_apertura = opening_time
-            settings_record.hora_cierre = closing_time
-            settings_record.intervalo_minutos = interval
-            db.session.commit()
-            flash("Configuracion actualizada.", "success")
-            return redirect(url_for("admin.settings"))
-
-    return render_template("admin/settings.html", settings_record=settings_record)
+    flash("La configuracion del negocio se gestiona desde el nuevo modulo SaaS.", "info")
+    return redirect(url_for("business.settings"))

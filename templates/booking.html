@@ -18,16 +18,25 @@
                 id="booking-form"
                 class="form-card"
                 method="post"
+                action="{{ form_action if form_action is defined else request.path }}"
                 data-availability-url="{{ url_for('main.availability') }}"
                 data-calendar-url="{{ url_for('main.calendar_days') }}"
                 data-selected-time="{{ form_data.get('hora', '') }}"
+                {% if exclude_appointment_id is defined and exclude_appointment_id %}data-exclude-appointment-id="{{ exclude_appointment_id }}"{% endif %}
             >
                 <div class="form-card-header">
-                    <h2>Datos de la reserva</h2>
+                    <h2>{{ "Reprograma tu cita" if appointment else "Datos de la reserva" }}</h2>
                     <p>Completa el flujo y confirma la cita por WhatsApp.</p>
                 </div>
 
                 <div class="form-grid">
+                    <div class="form-field full-width">
+                        <label>Cliente autenticado</label>
+                        <div class="availability-feedback">
+                            {{ current_client.nombre }}{% if current_client.username %} - @{{ current_client.username }}{% endif %} - {{ current_client.telefono }}
+                        </div>
+                    </div>
+
                     <div class="form-field">
                         <label for="servicio_id">Servicio</label>
                         <select id="servicio_id" name="servicio_id" required>
@@ -93,23 +102,13 @@
                         <input id="hora" name="hora" type="hidden" value="{{ form_data.get('hora', '') }}" required>
                     </div>
 
-                    <div class="form-field">
-                        <label for="nombre_cliente">Nombre</label>
-                        <input id="nombre_cliente" name="nombre_cliente" type="text" placeholder="Tu nombre completo" value="{{ form_data.get('nombre_cliente', '') }}" required>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="telefono">Telefono</label>
-                        <input id="telefono" name="telefono" type="tel" placeholder="8099846863" value="{{ form_data.get('telefono', '') }}" required>
-                    </div>
-
                     <div class="form-field full-width">
                         <label for="nota">Nota opcional</label>
                         <textarea id="nota" name="nota" rows="4" placeholder="Ejemplo: fade bajo, barba perfilada, diseno lateral...">{{ form_data.get('nota', '') }}</textarea>
                     </div>
                 </div>
 
-                <button class="btn btn-primary btn-full" type="submit">Confirmar cita</button>
+                <button class="btn btn-primary btn-full" type="submit">{{ submit_label if submit_label is defined else "Confirmar cita" }}</button>
             </form>
         </div>
 

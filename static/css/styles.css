@@ -302,6 +302,7 @@ textarea {
     display: block;
     font-size: 1.8rem;
     font-family: var(--font-display);
+    word-break: break-word;
 }
 
 .stat-card span,
@@ -586,10 +587,23 @@ textarea {
     font-size: 0.9rem;
 }
 
+.summary-grid strong {
+    word-break: break-word;
+}
+
 .confirmation-actions {
     display: flex;
     gap: 14px;
     flex-wrap: wrap;
+}
+
+.confirmation-actions form,
+.table-actions form {
+    margin: 0;
+}
+
+.confirmation-actions form {
+    display: inline-flex;
 }
 
 .copy-field {
@@ -622,6 +636,11 @@ textarea {
 .flash-warning {
     background: rgba(210, 178, 113, 0.18);
     color: #fff3d8;
+}
+
+.flash-info {
+    background: rgba(48, 92, 138, 0.2);
+    color: #dcecff;
 }
 
 .site-footer {
@@ -1149,5 +1168,266 @@ textarea {
     .calendar-spacer,
     .calendar-day {
         min-height: 68px;
+    }
+}
+
+.admin-nav-label {
+    color: var(--gold);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 4px 0;
+}
+
+.admin-nav-muted {
+    color: var(--muted);
+    padding: 0 16px;
+    font-size: 0.92rem;
+}
+
+.tenant-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--gold);
+}
+
+.hero-admin-card,
+.final-cta-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    flex-wrap: wrap;
+}
+
+.settings-preview-card,
+.location-card {
+    padding: 18px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.brand-preview {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.brand-hero-logo {
+    width: 82px;
+    height: 82px;
+    object-fit: cover;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    margin-bottom: 16px;
+}
+
+.brand-preview-swatch {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.map-frame-wrap {
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.map-frame {
+    width: 100%;
+    min-height: 300px;
+    border: 0;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.style-gallery-grid,
+.promo-grid,
+.quick-actions-grid {
+    display: grid;
+    gap: 18px;
+}
+
+.style-gallery-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.promo-grid,
+.quick-actions-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.style-admin-card,
+.style-showcase-card,
+.promo-admin-card,
+.testimonial-card {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.style-admin-card:hover,
+.style-showcase-card:hover,
+.promo-admin-card:hover,
+.testimonial-card:hover,
+.service-card-rich:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-strong);
+    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.34);
+}
+
+.style-admin-media,
+.style-showcase-media {
+    min-height: 220px;
+    padding: 20px;
+    background:
+        linear-gradient(135deg, rgba(210, 178, 113, 0.14), rgba(127, 31, 31, 0.25)),
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 28%);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    background-size: cover;
+    background-position: center;
+}
+
+.style-admin-media strong,
+.style-showcase-media strong {
+    font-size: 3rem;
+    font-family: var(--font-display);
+}
+
+.style-showcase-body,
+.promo-admin-card,
+.testimonial-card {
+    padding: 22px;
+}
+
+.compact-form {
+    padding: 22px;
+}
+
+.trend-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(210, 178, 113, 0.18);
+    color: #ffe9bd;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.promo-admin-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.promo-admin-top strong {
+    font-size: 2rem;
+    font-family: var(--font-display);
+}
+
+.promo-dates {
+    display: grid;
+    gap: 6px;
+    color: var(--muted);
+    margin: 14px 0 18px;
+}
+
+.public-style-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.testimonial-stars {
+    color: var(--gold);
+    letter-spacing: 0.22em;
+    margin-bottom: 12px;
+}
+
+.final-cta-card {
+    padding: 32px;
+}
+
+.social-link-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.social-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.social-pill:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+}
+
+.business-hero {
+    background-size: cover;
+    background-position: center;
+}
+
+.service-card-rich {
+    position: relative;
+    overflow: hidden;
+}
+
+.service-card-rich::after {
+    content: "";
+    position: absolute;
+    inset: auto -30% -40px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(210, 178, 113, 0.18), transparent 70%);
+    pointer-events: none;
+}
+
+[data-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+[data-reveal].is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (max-width: 720px) {
+    .hero-admin-card,
+    .final-cta-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .style-admin-media,
+    .style-showcase-media {
+        min-height: 180px;
     }
 }

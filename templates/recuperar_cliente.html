@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Recuperar contrasena | {{ global_settings.nombre_negocio }}{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container auth-shell">
+        <div class="auth-copy">
+            <span class="eyebrow">Recuperacion local</span>
+            <h1>Restablece tu acceso</h1>
+            <p>Implementacion local simple para entorno de desarrollo. Verifica usuario o correo y telefono para crear una nueva contrasena.</p>
+        </div>
+
+        <form class="form-card auth-card" method="post">
+            <div class="form-card-header">
+                <h2>Recuperar contrasena</h2>
+                <p>Sin correo externo, listo para integrar luego con email o SMS.</p>
+            </div>
+
+            <div class="form-grid single-col">
+                <div class="form-field">
+                    <label for="identifier">Username o correo</label>
+                    <input id="identifier" name="identifier" type="text" value="{{ form_data.get('identifier', '') }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="telefono">Telefono asociado</label>
+                    <input id="telefono" name="telefono" type="tel" value="{{ form_data.get('telefono', '') }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="password">Nueva contrasena</label>
+                    <input id="password" name="password" type="password" required>
+                </div>
+                <div class="form-field">
+                    <label for="confirm_password">Confirmar contrasena</label>
+                    <input id="confirm_password" name="confirm_password" type="password" required>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-full" type="submit">Actualizar contrasena</button>
+            <a class="text-link" href="{{ url_for('client.login') }}">Volver al login</a>
+        </form>
+    </div>
+</section>
+{% endblock %}

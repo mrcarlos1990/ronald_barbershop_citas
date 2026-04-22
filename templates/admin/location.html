@@ -1,0 +1,69 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Ubicacion | {{ global_settings.nombre_negocio }}{% endblock %}
+{% block admin_heading %}Ubicacion{% endblock %}
+
+{% block admin_content %}
+<section class="admin-grid two-col">
+    <article class="panel-card">
+        <div class="panel-card-header">
+            <h2>Ubicacion del negocio</h2>
+        </div>
+        <form class="form-grid single-col" method="post">
+            <div class="form-field">
+                <label for="address">Direccion</label>
+                <input id="address" name="address" type="text" value="{{ location_record.address or settings_record.address or '' }}" required>
+            </div>
+            <div class="form-field">
+                <label for="reference">Referencia</label>
+                <input id="reference" name="reference" type="text" value="{{ location_record.reference or '' }}">
+            </div>
+            <div class="form-row">
+                <div class="form-field">
+                    <label for="latitude">Latitud</label>
+                    <input id="latitude" name="latitude" type="text" value="{{ location_record.latitude or '' }}" placeholder="18.4861">
+                </div>
+                <div class="form-field">
+                    <label for="longitude">Longitud</label>
+                    <input id="longitude" name="longitude" type="text" value="{{ location_record.longitude or '' }}" placeholder="-69.9312">
+                </div>
+            </div>
+            <div class="form-field">
+                <label for="google_maps_url">Enlace Google Maps</label>
+                <input id="google_maps_url" name="google_maps_url" type="url" value="{{ location_record.google_maps_url or settings_record.google_maps_url or '' }}">
+            </div>
+            <label class="checkbox-field">
+                <input type="checkbox" name="show_map" {% if location_record.show_map %}checked{% endif %}>
+                <span>Mostrar mapa en la landing publica</span>
+            </label>
+            <button class="btn btn-primary" type="submit">Guardar ubicacion</button>
+        </form>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-card-header">
+            <h2>Vista publica</h2>
+        </div>
+        <div class="list-stack">
+            <div class="location-card">
+                <span class="panel-label">Direccion visible</span>
+                <strong>{{ location_record.address or settings_record.address or "Pendiente" }}</strong>
+                <p>{{ location_record.reference or settings_record.location_reference or "Agrega una referencia para ayudar al cliente." }}</p>
+            </div>
+
+            {% if location_record.google_maps_url %}
+                <a class="btn btn-secondary btn-full" href="{{ location_record.google_maps_url }}" target="_blank" rel="noreferrer">Ver ubicacion</a>
+                <a class="btn btn-primary btn-full" href="{{ location_record.google_maps_url }}" target="_blank" rel="noreferrer">Como llegar</a>
+            {% endif %}
+
+            {% if location_record.show_map and location_record.embed_url %}
+                <div class="map-frame-wrap">
+                    <iframe class="map-frame" src="{{ location_record.embed_url }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            {% else %}
+                <p class="empty-state">El mapa embebido esta oculto o faltan datos para mostrarlo.</p>
+            {% endif %}
+        </div>
+    </article>
+</section>
+{% endblock %}

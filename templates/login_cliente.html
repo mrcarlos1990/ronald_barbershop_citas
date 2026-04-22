@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar sesion | {{ global_settings.nombre_negocio }}{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container auth-shell">
+        <div class="auth-copy">
+            <span class="eyebrow">Cliente</span>
+            <h1>Entra a tu panel privado</h1>
+            <p>Inicia sesion con tu username o correo y gestiona tus citas desde el celular.</p>
+        </div>
+
+        <form class="form-card auth-card" method="post">
+            <div class="form-card-header">
+                <h2>Iniciar sesion</h2>
+                <p>Tu cuenta de cliente es independiente del acceso administrativo.</p>
+            </div>
+
+            <div class="form-grid single-col">
+                <div class="form-field">
+                    <label for="identifier">Username o correo</label>
+                    <input id="identifier" name="identifier" type="text" value="{{ form_data.get('identifier', '') }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="password">Contrasena</label>
+                    <input id="password" name="password" type="password" required>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-full" type="submit">Entrar</button>
+            <div class="list-stack">
+                <a class="text-link" href="{{ url_for('client.register', next=request.args.get('next')) if request.args.get('next') else url_for('client.register') }}">Crear una cuenta nueva</a>
+                <a class="text-link" href="{{ url_for('client.forgot_password') }}">Recuperar contrasena</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

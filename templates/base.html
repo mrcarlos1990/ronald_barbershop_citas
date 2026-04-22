@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ global_settings.nombre_negocio }}{% endblock %}</title>
     <meta name="description" content="{{ global_settings.mensaje_bienvenida }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        :root {
+            --gold: {{ global_settings.primary_color or '#d2b271' }};
+            --red: {{ global_settings.secondary_color or '#7f1f1f' }};
+            --border-strong: color-mix(in srgb, {{ global_settings.primary_color or '#d2b271' }} 35%, transparent);
+        }
+    </style>
 </head>
 <body class="{% block body_class %}public-body{% endblock %}">
     <div class="site-bg"></div>
@@ -19,6 +26,17 @@
             <nav class="top-nav">
                 <a href="{{ url_for('main.landing') }}">Inicio</a>
                 <a href="{{ url_for('main.booking_form') }}">Agendar</a>
+                {% if current_tenant %}
+                    <a href="{{ url_for('business.public_business', tenant_slug=current_tenant.slug) }}">Landing</a>
+                {% endif %}
+                {% if current_client %}
+                    <a href="{{ url_for('client.dashboard') }}">Mi panel</a>
+                    <a href="{{ url_for('client.appointments') }}">Mis citas</a>
+                    <a href="{{ url_for('client.logout') }}">Salir cliente</a>
+                {% else %}
+                    <a href="{{ url_for('client.register') }}">Crear cuenta</a>
+                    <a href="{{ url_for('client.login') }}">Iniciar sesion</a>
+                {% endif %}
                 {% if current_admin %}
                     <a href="{{ url_for('admin.dashboard') }}">Panel admin</a>
                 {% else %}
@@ -52,6 +70,9 @@
             <div class="footer-meta">
                 <span>{{ global_settings.direccion }}</span>
                 <span>WhatsApp: {{ global_settings.telefono_whatsapp }}</span>
+                {% if current_tenant and current_tenant.domain_url %}
+                    <span>{{ current_tenant.domain_url }}</span>
+                {% endif %}
                 <span>&copy; {{ current_year }} {{ global_settings.nombre_negocio }}</span>
             </div>
         </div>

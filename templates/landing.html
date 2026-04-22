@@ -14,7 +14,16 @@
                 Elige servicio, barbero, fecha y hora disponible sin llamadas ni cruces de agenda.
             </p>
             <div class="hero-actions">
-                <a class="btn btn-primary" href="{{ url_for('main.booking_form') }}">Agendar cita</a>
+                {% if current_client %}
+                    <a class="btn btn-primary" href="{{ url_for('main.booking_form') }}">Agendar cita</a>
+                    <a class="btn btn-secondary" href="{{ url_for('client.dashboard') }}">Mi panel</a>
+                {% else %}
+                    <a class="btn btn-primary" href="{{ url_for('client.register') }}">Crear cuenta</a>
+                    <a class="btn btn-secondary" href="{{ url_for('client.login') }}">Iniciar sesion</a>
+                {% endif %}
+            </div>
+            <div class="hero-actions">
+                <a class="btn btn-secondary" href="{{ url_for('main.booking_form') }}">Agendar cita</a>
                 <a class="btn btn-secondary" href="{{ whatsapp_link }}" target="_blank" rel="noreferrer">Escribenos por WhatsApp</a>
             </div>
             <div class="hero-stats">

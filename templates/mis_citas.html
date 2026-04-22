@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Mis citas | {{ global_settings.nombre_negocio }}{% endblock %}
+
+{% block content %}
+<section class="page-intro">
+    <div class="container narrow">
+        <span class="eyebrow">Historial del cliente</span>
+        <h1>Mis citas</h1>
+        <p>Visualiza tus citas, su estado actual y las acciones permitidas antes de que inicien.</p>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="container">
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <h2>Todas tus citas</h2>
+                <div class="table-actions">
+                    <a class="text-link" href="{{ contact_link }}" target="_blank" rel="noreferrer">WhatsApp</a>
+                    <a class="text-link" href="{{ url_for('main.booking_form') }}">Agendar nueva</a>
+                </div>
+            </div>
+            <p class="empty-state">Solo puedes ver y gestionar tus propias reservas autenticadas.</p>
+        </article>
+
+        <div class="list-stack">
+            {% for appointment in appointments %}
+                <article class="panel-card appointment-card">
+                    <div class="panel-card-header">
+                        <div>
+                            <h2>{{ appointment.servicio.nombre }}</h2>
+                            <p>{{ appointment.fecha|display_date }} - {{ appointment.hora|display_time }} con {{ appointment.barbero.nombre }}</p>
+                        </div>
+                        <span class="status-badge status-{{ appointment.estado }}">{{ status_labels[appointment.estado] }}</span>
+                    </div>
+
+                    <div class="summary-grid">
+                        <div>
+                            <span>Fecha</span>
+                            <strong>{{ appointment.fecha|display_date }}</strong>
+                        </div>
+                        <div>
+                            <span>Hora</span>
+                            <strong>{{ appointment.hora|display_time }}</strong>
+                        </div>
+                        <div>
+                            <span>Barbero</span>
+                            <strong>{{ appointment.barbero.nombre }}</strong>
+                        </div>
+                        <div>
+                            <span>Estado</span>
+                            <strong>{{ status_labels[appointment.estado] }}</strong>
+                        </div>
+                        <div>
+                            <span>Nota</span>
+                            <strong>{{ appointment.nota or "Sin nota adicional" }}</strong>
+                        </div>
+                        <div>
+                            <span>Telefono</span>
+                            <strong>{{ appointment.telefono }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="confirmation-actions">
+                        <a class="btn btn-secondary" href="{{ url_for('main.booking_confirmation', appointment_id=appointment.id) }}">Ver confirmacion</a>
+                        {% if client_can_manage_appointment(appointment) %}
+                            <a class="btn btn-secondary" href="{{ url_for('client.reschedule_appointment', appointment_id=appointment.id) }}">Reprogramar</a>
+                            <form method="post" action="{{ url_for('client.cancel_appointment', appointment_id=appointment.id) }}" data-confirm="Se cancelara esta cita. Deseas continuar?">
+                                <button class="btn btn-danger" type="submit">Cancelar cita</button>
+                            </form>
+                        {% else %}
+                            <a class="btn btn-secondary" href="{{ contact_link }}" target="_blank" rel="noreferrer">Contactar barberia</a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% else %}
+                <article class="panel-card">
+                    <p class="empty-state">Todavia no tienes citas registradas.</p>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

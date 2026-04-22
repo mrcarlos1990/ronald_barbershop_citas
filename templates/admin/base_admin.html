@@ -4,32 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Panel Admin | {{ global_settings.nombre_negocio }}{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        :root {
+            --gold: {{ global_settings.primary_color or '#d2b271' }};
+            --red: {{ global_settings.secondary_color or '#7f1f1f' }};
+            --border-strong: color-mix(in srgb, {{ global_settings.primary_color or '#d2b271' }} 35%, transparent);
+        }
+    </style>
 </head>
 <body class="admin-body">
     <div class="admin-layout">
         <aside class="admin-sidebar">
             <a class="brand-mark admin-brand" href="{{ url_for('admin.dashboard') }}">
-                <span class="brand-kicker">Control Center</span>
+                <span class="brand-kicker">Barber SaaS Control</span>
                 <strong>{{ global_settings.nombre_negocio }}</strong>
             </a>
 
             <nav class="admin-nav">
                 <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
                 <a href="{{ url_for('admin.appointments') }}">Citas</a>
-                <a href="{{ url_for('admin.new_appointment') }}">Nueva cita</a>
-                <a href="{{ url_for('admin.services') }}">Servicios</a>
-                <a href="{{ url_for('admin.barbers') }}">Barberos</a>
                 <a href="{{ url_for('admin.clients') }}">Clientes</a>
-                <a href="{{ url_for('admin.blocked_slots') }}">Horarios bloqueados</a>
-                <a href="{{ url_for('admin.settings') }}">Configuracion</a>
+                <a href="{{ url_for('admin.barbers') }}">Barberos</a>
+                <a href="{{ url_for('admin.services') }}">Servicios</a>
+                <a href="{{ url_for('business.styles') }}">Estilos de cortes</a>
+                <a href="{{ url_for('business.settings') }}">Ajustes del negocio</a>
+                <a href="{{ url_for('business.location') }}">Ubicacion</a>
+                <a href="{{ url_for('business.promotions') }}">Promociones</a>
+                <span class="admin-nav-label">Crecimiento</span>
+                <span class="admin-nav-muted">Reportes · Proximamente</span>
+                <span class="admin-nav-muted">Apariencia · Integrado en Ajustes</span>
+                <span class="admin-nav-muted">Suscripcion · Trial activo</span>
             </nav>
 
             <div class="sidebar-footer">
-                <a class="btn btn-secondary btn-full" href="{{ url_for('main.landing') }}">Ver sitio</a>
+                {% if current_tenant %}
+                    <a class="btn btn-secondary btn-full" href="{{ url_for('business.public_business', tenant_slug=current_tenant.slug) }}" target="_blank" rel="noreferrer">Ver landing publica</a>
+                {% else %}
+                    <a class="btn btn-secondary btn-full" href="{{ url_for('main.landing') }}">Ver sitio</a>
+                {% endif %}
                 <a class="btn btn-danger btn-full" href="{{ url_for('admin.logout') }}">Cerrar sesion</a>
                 <div class="sidebar-signature">
-                    <span>Desarrollado por</span>
+                    <span>Desarrollado Por</span>
                     <strong>Ing. Amauri Feliz</strong>
                 </div>
             </div>
@@ -44,6 +60,9 @@
                 <div class="admin-userbox">
                     <strong>{{ current_admin.nombre_completo if current_admin else "Administrador" }}</strong>
                     <span>{{ current_admin.username if current_admin else "" }}</span>
+                    {% if current_tenant %}
+                        <span class="tenant-badge">{{ current_tenant.slug }}</span>
+                    {% endif %}
                 </div>
             </header>
 

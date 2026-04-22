@@ -1,0 +1,113 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Estilos de cortes | {{ global_settings.nombre_negocio }}{% endblock %}
+{% block admin_heading %}Estilos de cortes{% endblock %}
+
+{% block admin_content %}
+<section class="admin-grid two-col">
+    <article class="panel-card">
+        <div class="panel-card-header">
+            <h2>Nuevo estilo</h2>
+        </div>
+        <form class="form-grid single-col" method="post">
+            <div class="form-field">
+                <label for="name">Nombre del corte</label>
+                <input id="name" name="name" type="text" required>
+            </div>
+            <div class="form-field">
+                <label for="description">Descripcion</label>
+                <textarea id="description" name="description" rows="4"></textarea>
+            </div>
+            <div class="form-field">
+                <label for="image_url">Imagen URL</label>
+                <input id="image_url" name="image_url" type="url" placeholder="https://...">
+            </div>
+            <div class="form-row">
+                <div class="form-field">
+                    <label for="suggested_price">Precio sugerido</label>
+                    <input id="suggested_price" name="suggested_price" type="number" min="0" step="0.01">
+                </div>
+                <div class="form-field">
+                    <label for="service_id">Asociar a servicio</label>
+                    <select id="service_id" name="service_id">
+                        <option value="">Sin servicio asociado</option>
+                        {% for service in services %}
+                            <option value="{{ service.id }}">{{ service.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <label class="checkbox-field">
+                <input type="checkbox" name="trending" checked>
+                <span>Marcar como tendencia</span>
+            </label>
+            <label class="checkbox-field">
+                <input type="checkbox" name="active" checked>
+                <span>Estilo visible</span>
+            </label>
+            <button class="btn btn-primary" type="submit">Crear estilo</button>
+        </form>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-card-header">
+            <h2>Galeria administrable</h2>
+        </div>
+        <div class="style-gallery-grid">
+            {% for style in style_list %}
+                <article class="style-admin-card" data-reveal>
+                    <div class="style-admin-media" {% if style.image_url %}style="background-image: linear-gradient(180deg, rgba(7, 7, 7, 0.12), rgba(7, 7, 7, 0.88)), url('{{ style.image_url }}');"{% endif %}>
+                        {% if style.trending %}
+                            <span class="trend-badge">En tendencia</span>
+                        {% endif %}
+                        <strong>{{ style.name[:1] }}</strong>
+                    </div>
+                    <form class="form-grid single-col compact-form" method="post" action="{{ url_for('business.style_detail', style_id=style.id) }}">
+                        <div class="form-field">
+                            <label>Nombre</label>
+                            <input name="name" type="text" value="{{ style.name }}" required>
+                        </div>
+                        <div class="form-field">
+                            <label>Descripcion</label>
+                            <textarea name="description" rows="3">{{ style.description or '' }}</textarea>
+                        </div>
+                        <div class="form-field">
+                            <label>Imagen URL</label>
+                            <input name="image_url" type="url" value="{{ style.image_url or '' }}">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Precio sugerido</label>
+                                <input name="suggested_price" type="number" step="0.01" min="0" value="{{ style.suggested_price or '' }}">
+                            </div>
+                            <div class="form-field">
+                                <label>Servicio</label>
+                                <select name="service_id">
+                                    <option value="">Sin servicio asociado</option>
+                                    {% for service in services %}
+                                        <option value="{{ service.id }}" {% if style.service_id == service.id %}selected{% endif %}>{{ service.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <label class="checkbox-field">
+                            <input type="checkbox" name="trending" {% if style.trending %}checked{% endif %}>
+                            <span>En tendencia</span>
+                        </label>
+                        <label class="checkbox-field">
+                            <input type="checkbox" name="active" {% if style.active %}checked{% endif %}>
+                            <span>Activo</span>
+                        </label>
+                        <div class="confirmation-actions">
+                            <button class="btn btn-secondary" type="submit">Guardar</button>
+                            <button class="btn btn-danger" type="submit" name="_intent" value="delete" formnovalidate>Eliminar</button>
+                        </div>
+                    </form>
+                </article>
+            {% else %}
+                <p class="empty-state">Aun no has agregado estilos de corte.</p>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+{% endblock %}

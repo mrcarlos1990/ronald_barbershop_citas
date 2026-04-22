@@ -23,6 +23,16 @@
             </div>
             <div class="form-row">
                 <div class="form-field">
+                    <label for="categoria">Categoria</label>
+                    <input id="categoria" name="categoria" type="text" value="{{ service_to_edit.categoria if service_to_edit else '' }}" placeholder="Fades, Premium, Barba...">
+                </div>
+                <div class="form-field">
+                    <label for="image_url">Imagen URL</label>
+                    <input id="image_url" name="image_url" type="url" value="{{ service_to_edit.image_url if service_to_edit else '' }}" placeholder="https://...">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-field">
                     <label for="duracion_minutos">Duracion (min)</label>
                     <input id="duracion_minutos" name="duracion_minutos" type="number" min="5" value="{{ service_to_edit.duracion_minutos if service_to_edit else 30 }}" required>
                 </div>
@@ -60,13 +70,14 @@
                             <td>
                                 <strong>{{ service.nombre }}</strong>
                                 <p>{{ service.descripcion }}</p>
+                                <p>{{ service.categoria or "Sin categoria" }}</p>
                             </td>
                             <td>{{ service.duracion_minutos }} min</td>
                             <td>{{ service.precio|currency }}</td>
                             <td><span class="status-badge status-{{ 'confirmada' if service.activo else 'cancelada' }}">{{ "Activo" if service.activo else "Inactivo" }}</span></td>
                             <td class="table-actions">
                                 <a class="text-link" href="{{ url_for('admin.services', edit=service.id) }}">Editar</a>
-                                <form method="post" action="{{ url_for('admin.delete_service', service_id=service.id) }}">
+                                <form method="post" action="{{ url_for('admin.delete_service', service_id=service.id) }}" data-confirm="Este servicio sera eliminado. Deseas continuar?">
                                     <button class="text-button danger-text" type="submit">Eliminar</button>
                                 </form>
                             </td>

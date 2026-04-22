@@ -1,0 +1,404 @@
+from __future__ import annotations
+
+from datetime import date
+
+from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
+
+from .decorators import admin_required
+from .models import (
+    AppearanceSettings,
+    Barber,
+    HaircutStyle,
+    LocationSettings,
+    Promotion,
+    Service,
+    SocialLink,
+    Testimonial,
+    db,
+)
+from .utils import (
+    active_promotions_query,
+    build_reusable_whatsapp_link,
+    get_appearance_settings,
+    get_business_settings,
+    get_current_tenant_id,
+    get_location_settings,
+    get_social_links,
+    get_tenant,
+    is_valid_email,
+    is_valid_phone,
+    normalize_phone,
+    parse_date,
+    parse_time,
+)
+
+
+business_bp = Blueprint("business", __name__)
+
+
+def _tenant_id() -> int:
+    tenant_id = get_current_tenant_id()
+    if not tenant_id:
+        abort(404)
+    return tenant_id
+
+
+def _color_or_default(value: str | None, default: str) -> str:
+    color = (value or "").strip()
+    if color and len(color) in {4, 7} and color.startswith("#"):
+        return color
+    return default
+
+
+@business_bp.route("/admin/settings", methods=["GET", "POST"])
+@admin_required
+def settings():
+    tenant_id = _tenant_id()
+    settings_record = get_business_settings(tenant_id=tenant_id)
+    appearance_record = get_appearance_settings(tenant_id=tenant_id)
+    location_record = get_location_settings(tenant_id=tenant_id)
+    social_map = {link.platform.lower(): link for link in SocialLink.query.filter_by(tenant_id=tenant_id).all()}
+
+    if request.method == "POST":
+        business_name = (request.form.get("business_name") or "").strip()
+        slogan = (request.form.get("slogan") or "").strip()
+        phone = (request.form.get("phone") or "").strip()
+        whatsapp = (request.form.get("whatsapp") or "").strip()
+        email = (request.form.get("email") or "").strip().lower()
+        address = (request.form.get("address") or "").strip()
+        reference = (request.form.get("location_reference") or "").strip()
+        city = (request.form.get("city") or "").strip()
+        province_state = (request.form.get("province_state") or "").strip()
+        country = (request.form.get("country") or "").strip()
+        google_maps_url = (request.form.get("google_maps_url") or "").strip()
+        logo_url = (request.form.get("logo_url") or "").strip()
+        banner_url = (request.form.get("banner_url") or "").strip()
+        working_days = (request.form.get("working_days") or "").strip()
+        opening_time = parse_time(request.form.get("hora_apertura"))
+        closing_time = parse_time(request.form.get("hora_cierre"))
+        interval = request.form.get("intervalo_minutos", type=int) or 30
+        primary_color = _color_or_default(request.form.get("primary_color"), "#d2b271")
+        secondary_color = _color_or_default(request.form.get("secondary_color"), "#7f1f1f")
+        welcome_message = (request.form.get("mensaje_bienvenida") or "").strip()
+
+        errors = []
+        if not business_name:
+            errors.append("El nombre del negocio es obligatorio.")
+        if not slogan:
+            errors.append("El slogan es obligatorio.")
+        if phone and not is_valid_phone(phone):
+            errors.append("Ingresa un telefono valido.")
+        if not is_valid_phone(whatsapp):
+            errors.append("Ingresa un WhatsApp valido.")
+        if email and not is_valid_email(email):
+            errors.append("Ingresa un correo valido.")
+        if not opening_time or not closing_time or opening_time >= closing_time:
+            errors.append("Define un horario de apertura y cierre valido.")
+        if interval not in {15, 20, 30, 45, 60}:
+            errors.append("El intervalo debe ser 15, 20, 30, 45 o 60 minutos.")
+
+        if errors:
+            for error in errors:
+                flash(error, "danger")
+        else:
+            settings_record.business_name = business_name
+            settings_record.slogan = slogan
+            settings_record.phone = normalize_phone(phone) if phone else None
+            settings_record.whatsapp = normalize_phone(whatsapp)
+            settings_record.email = email or None
+            settings_record.address = address
+            settings_record.location_reference = reference or None
+            settings_record.city = city or None
+            settings_record.province_state = province_state or None
+            settings_record.country = country or None
+            settings_record.google_maps_url = google_maps_url or None
+            settings_record.logo_url = logo_url or None
+            settings_record.banner_url = banner_url or None
+            settings_record.primary_color = primary_color
+            settings_record.secondary_color = secondary_color
+            settings_record.working_days = working_days or "Lunes a Sabado"
+            settings_record.hora_apertura = opening_time
+            settings_record.hora_cierre = closing_time
+            settings_record.intervalo_minutos = interval
+            settings_record.mensaje_bienvenida = welcome_message or settings_record.mensaje_bienvenida
+            settings_record.show_map = request.form.get("show_map") == "on"
+            settings_record.show_gallery_styles = request.form.get("show_gallery_styles") == "on"
+            settings_record.show_promotions = request.form.get("show_promotions") == "on"
+            settings_record.show_testimonials = request.form.get("show_testimonials") == "on"
+
+            appearance_record.featured_image_url = (request.form.get("featured_image_url") or "").strip() or None
+            appearance_record.visual_style = (request.form.get("visual_style") or "premium-barber").strip()
+            appearance_record.show_services = request.form.get("show_services") == "on"
+            appearance_record.show_barbers = request.form.get("show_barbers") == "on"
+            appearance_record.show_gallery_styles = settings_record.show_gallery_styles
+            appearance_record.show_promotions = settings_record.show_promotions
+            appearance_record.show_testimonials = settings_record.show_testimonials
+
+            location_record.address = address
+            location_record.reference = reference or None
+            location_record.google_maps_url = google_maps_url or None
+            location_record.show_map = settings_record.show_map
+
+            for platform in ("instagram", "facebook", "tiktok"):
+                url_value = (request.form.get(f"{platform}_url") or "").strip()
+                existing = social_map.get(platform)
+                if url_value:
+                    if existing is None:
+                        existing = SocialLink(
+                            tenant_id=tenant_id,
+                            platform=platform.capitalize(),
+                            label=platform.capitalize(),
+                            url=url_value,
+                            active=True,
+                        )
+                        db.session.add(existing)
+                    else:
+                        existing.url = url_value
+                        existing.active = True
+                elif existing is not None:
+                    existing.active = False
+
+            db.session.commit()
+            flash("Ajustes del negocio actualizados correctamente.", "success")
+            return redirect(url_for("business.settings"))
+
+    return render_template(
+        "admin/settings.html",
+        settings_record=settings_record,
+        appearance_record=appearance_record,
+        location_record=location_record,
+        social_map=social_map,
+    )
+
+
+@business_bp.route("/admin/location", methods=["GET", "POST"])
+@admin_required
+def location():
+    tenant_id = _tenant_id()
+    location_record = get_location_settings(tenant_id=tenant_id)
+    settings_record = get_business_settings(tenant_id=tenant_id)
+
+    if request.method == "POST":
+        address = (request.form.get("address") or "").strip()
+        reference = (request.form.get("reference") or "").strip()
+        latitude = (request.form.get("latitude") or "").strip()
+        longitude = (request.form.get("longitude") or "").strip()
+        google_maps_url = (request.form.get("google_maps_url") or "").strip()
+
+        if not address:
+            flash("La direccion es obligatoria.", "danger")
+        else:
+            location_record.address = address
+            location_record.reference = reference or None
+            location_record.latitude = latitude or None
+            location_record.longitude = longitude or None
+            location_record.google_maps_url = google_maps_url or None
+            location_record.show_map = request.form.get("show_map") == "on"
+            settings_record.address = address
+            settings_record.location_reference = reference or None
+            settings_record.google_maps_url = google_maps_url or None
+            settings_record.show_map = location_record.show_map
+            db.session.commit()
+            flash("Ubicacion actualizada correctamente.", "success")
+            return redirect(url_for("business.location"))
+
+    return render_template("admin/location.html", location_record=location_record, settings_record=settings_record)
+
+
+@business_bp.route("/admin/styles", methods=["GET", "POST"])
+@admin_required
+def styles():
+    tenant_id = _tenant_id()
+    services = Service.query.filter_by(tenant_id=tenant_id).order_by(Service.nombre.asc()).all()
+
+    if request.method == "POST":
+        name = (request.form.get("name") or "").strip()
+        description = (request.form.get("description") or "").strip()
+        image_url = (request.form.get("image_url") or "").strip()
+        trending = request.form.get("trending") == "on"
+        suggested_price = request.form.get("suggested_price", type=float)
+        service_id = request.form.get("service_id", type=int)
+        active = request.form.get("active") == "on"
+
+        if not name:
+            flash("El nombre del estilo es obligatorio.", "danger")
+        else:
+            style = HaircutStyle(
+                tenant_id=tenant_id,
+                service_id=service_id or None,
+                name=name,
+                description=description or None,
+                image_url=image_url or None,
+                trending=trending,
+                suggested_price=suggested_price,
+                active=active,
+            )
+            db.session.add(style)
+            db.session.commit()
+            flash("Estilo de corte creado correctamente.", "success")
+            return redirect(url_for("business.styles"))
+
+    style_list = (
+        HaircutStyle.query.filter_by(tenant_id=tenant_id)
+        .order_by(HaircutStyle.trending.desc(), HaircutStyle.fecha_creacion.desc())
+        .all()
+    )
+    return render_template("admin/styles.html", style_list=style_list, services=services)
+
+
+@business_bp.route("/admin/styles/<int:style_id>", methods=["POST", "PUT", "DELETE"])
+@admin_required
+def style_detail(style_id: int):
+    tenant_id = _tenant_id()
+    style = HaircutStyle.query.filter_by(id=style_id, tenant_id=tenant_id).first()
+    if style is None:
+        abort(404)
+
+    method = request.method
+    intent = (request.form.get("_intent") or "").lower()
+    if method == "POST" and intent == "delete":
+        method = "DELETE"
+    elif method == "POST":
+        method = "PUT"
+
+    if method == "DELETE":
+        db.session.delete(style)
+        db.session.commit()
+        if request.method == "POST":
+            flash("Estilo eliminado correctamente.", "success")
+            return redirect(url_for("business.styles"))
+        return jsonify({"ok": True})
+
+    payload = request.get_json(silent=True) if request.method == "PUT" else request.form
+    name = (payload.get("name") or "").strip()
+    description = (payload.get("description") or "").strip()
+    image_url = (payload.get("image_url") or "").strip()
+    service_id = int(payload.get("service_id") or 0) or None
+    suggested_price = None
+    if payload.get("suggested_price"):
+        try:
+            suggested_price = float(payload.get("suggested_price"))
+        except (TypeError, ValueError):
+            suggested_price = None
+
+    if not name:
+        if request.method == "POST":
+            flash("El nombre del estilo es obligatorio.", "danger")
+            return redirect(url_for("business.styles"))
+        return jsonify({"ok": False, "message": "El nombre es obligatorio."}), 400
+
+    style.name = name
+    style.description = description or None
+    style.image_url = image_url or None
+    style.service_id = service_id
+    style.trending = payload.get("trending") in {"on", True, "true", "1"}
+    style.active = payload.get("active") in {"on", True, "true", "1"}
+    style.suggested_price = suggested_price
+    db.session.commit()
+
+    if request.method == "POST":
+        flash("Estilo actualizado correctamente.", "success")
+        return redirect(url_for("business.styles"))
+    return jsonify({"ok": True})
+
+
+@business_bp.route("/admin/promotions", methods=["GET", "POST"])
+@admin_required
+def promotions():
+    tenant_id = _tenant_id()
+
+    if request.method == "POST":
+        action = (request.form.get("_action") or "create").lower()
+        promotion_id = request.form.get("promotion_id", type=int)
+
+        if action == "delete" and promotion_id:
+            promotion = Promotion.query.filter_by(id=promotion_id, tenant_id=tenant_id).first()
+            if promotion is not None:
+                db.session.delete(promotion)
+                db.session.commit()
+                flash("Promocion eliminada correctamente.", "success")
+            return redirect(url_for("business.promotions"))
+
+        title = (request.form.get("title") or "").strip()
+        description = (request.form.get("description") or "").strip()
+        discount_percentage = request.form.get("discount_percentage", type=float)
+        start_date = parse_date(request.form.get("start_date"))
+        end_date = parse_date(request.form.get("end_date"))
+        image_url = (request.form.get("image_url") or "").strip()
+        active = request.form.get("active") == "on"
+
+        errors = []
+        if not title:
+            errors.append("El titulo de la promocion es obligatorio.")
+        if discount_percentage is None or discount_percentage < 0:
+            errors.append("Ingresa un porcentaje de descuento valido.")
+        if not start_date or not end_date or end_date < start_date:
+            errors.append("Define un rango de fechas valido.")
+
+        if errors:
+            for error in errors:
+                flash(error, "danger")
+        else:
+            promotion = Promotion(
+                tenant_id=tenant_id,
+                title=title,
+                description=description or None,
+                discount_percentage=discount_percentage,
+                start_date=start_date,
+                end_date=end_date,
+                image_url=image_url or None,
+                active=active,
+            )
+            db.session.add(promotion)
+            db.session.commit()
+            flash("Promocion creada correctamente.", "success")
+            return redirect(url_for("business.promotions"))
+
+    promotion_list = (
+        Promotion.query.filter_by(tenant_id=tenant_id)
+        .order_by(Promotion.start_date.desc(), Promotion.fecha_creacion.desc())
+        .all()
+    )
+    return render_template("admin/promotions.html", promotion_list=promotion_list, today=date.today())
+
+
+@business_bp.route("/<tenant_slug>")
+def public_business(tenant_slug: str):
+    if tenant_slug.lower() in {"admin", "cliente"}:
+        abort(404)
+
+    tenant = get_tenant(tenant_slug=tenant_slug, create_default=False)
+    if tenant is None or not tenant.active:
+        abort(404)
+
+    settings = get_business_settings(tenant_id=tenant.id)
+    appearance = get_appearance_settings(tenant_id=tenant.id)
+    location = get_location_settings(tenant_id=tenant.id)
+    services = Service.query.filter_by(tenant_id=tenant.id, activo=True).order_by(Service.nombre.asc()).all()
+    barbers = Barber.query.filter_by(tenant_id=tenant.id, activo=True).order_by(Barber.nombre.asc()).all()
+    styles = (
+        HaircutStyle.query.filter_by(tenant_id=tenant.id, active=True)
+        .order_by(HaircutStyle.trending.desc(), HaircutStyle.fecha_creacion.desc())
+        .all()
+    )
+    promotions = active_promotions_query(tenant_id=tenant.id).order_by(Promotion.end_date.asc()).all()
+    testimonials = Testimonial.query.filter_by(tenant_id=tenant.id, visible=True).order_by(Testimonial.fecha_creacion.desc()).all()
+    social_links = get_social_links(tenant_id=tenant.id)
+    booking_url = request.url_root.rstrip("/") + url_for("main.booking_form")
+    whatsapp_link = build_reusable_whatsapp_link(settings, booking_url=booking_url)
+
+    return render_template(
+        "public_business.html",
+        tenant=tenant,
+        settings=settings,
+        appearance=appearance,
+        location=location,
+        services=services,
+        barbers=barbers,
+        styles=styles,
+        promotions=promotions,
+        testimonials=testimonials,
+        social_links=social_links,
+        booking_url=booking_url,
+        whatsapp_link=whatsapp_link,
+    )

@@ -7,27 +7,39 @@
 <section class="metric-grid">
     <article class="metric-card">
         <span>Total de citas</span>
-        <strong>{{ stats.total }}</strong>
+        <strong data-countup="{{ stats.total }}">{{ stats.total }}</strong>
     </article>
     <article class="metric-card">
         <span>Pendientes</span>
-        <strong>{{ stats.pendientes }}</strong>
+        <strong data-countup="{{ stats.pendientes }}">{{ stats.pendientes }}</strong>
     </article>
     <article class="metric-card">
         <span>Confirmadas</span>
-        <strong>{{ stats.confirmadas }}</strong>
+        <strong data-countup="{{ stats.confirmadas }}">{{ stats.confirmadas }}</strong>
     </article>
     <article class="metric-card">
         <span>Completadas</span>
-        <strong>{{ stats.completadas }}</strong>
+        <strong data-countup="{{ stats.completadas }}">{{ stats.completadas }}</strong>
     </article>
     <article class="metric-card">
         <span>Canceladas</span>
-        <strong>{{ stats.canceladas }}</strong>
+        <strong data-countup="{{ stats.canceladas }}">{{ stats.canceladas }}</strong>
     </article>
     <article class="metric-card">
         <span>Citas de hoy</span>
-        <strong>{{ stats.citas_hoy }}</strong>
+        <strong data-countup="{{ stats.citas_hoy }}">{{ stats.citas_hoy }}</strong>
+    </article>
+    <article class="metric-card">
+        <span>Total clientes</span>
+        <strong data-countup="{{ stats.clientes }}">{{ stats.clientes }}</strong>
+    </article>
+    <article class="metric-card">
+        <span>Nuevos hoy</span>
+        <strong data-countup="{{ stats.nuevos_clientes_hoy }}">{{ stats.nuevos_clientes_hoy }}</strong>
+    </article>
+    <article class="metric-card">
+        <span>Ingresos estimados</span>
+        <strong>{{ stats.ingresos_estimados|currency }}</strong>
     </article>
 </section>
 
@@ -80,6 +92,42 @@
 <section class="admin-grid two-col">
     <article class="panel-card">
         <div class="panel-card-header">
+            <h2>Indicadores comerciales</h2>
+        </div>
+        <div class="summary-grid">
+            <div>
+                <span>Servicio mas solicitado</span>
+                <strong>{{ top_service[0] if top_service else "Sin datos" }}</strong>
+            </div>
+            <div>
+                <span>Total del top servicio</span>
+                <strong>{{ top_service[1] if top_service else 0 }}</strong>
+            </div>
+            <div>
+                <span>Barbero con mas citas</span>
+                <strong>{{ top_barber[0] if top_barber else "Sin datos" }}</strong>
+            </div>
+            <div>
+                <span>Citas del top barbero</span>
+                <strong>{{ top_barber[1] if top_barber else 0 }}</strong>
+            </div>
+            <div class="full-width">
+                <span>Horarios mas ocupados</span>
+                <strong>
+                    {% if busiest_hours %}
+                        {% for hour, total in busiest_hours %}
+                            {{ hour|display_time }} ({{ total }}){% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        Sin datos
+                    {% endif %}
+                </strong>
+            </div>
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-card-header">
             <h2>Clientes recientes</h2>
             <a href="{{ url_for('admin.clients') }}">Ver clientes</a>
         </div>
@@ -88,45 +136,43 @@
                 <thead>
                     <tr>
                         <th>Cliente</th>
+                        <th>Usuario</th>
                         <th>Telefono</th>
                         <th>Total citas</th>
-                        <th>Ultima visita</th>
+                        <th>Registro</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for client in recent_clients %}
                         <tr>
                             <td>{{ client.nombre }}</td>
+                            <td>{{ client.username or client.email or "-" }}</td>
                             <td>{{ client.telefono }}</td>
                             <td>{{ client.total_citas }}</td>
-                            <td>
-                                {% if client.ultima_cita %}
-                                    {{ client.ultima_cita.fecha|display_date }} - {{ client.ultima_cita.hora|display_time }}
-                                {% else %}
-                                    Sin visitas
-                                {% endif %}
-                            </td>
+                            <td>{{ client.fecha_creacion|display_datetime }}</td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="4">No hay clientes recientes.</td>
+                            <td colspan="5">No hay clientes recientes.</td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </article>
+</section>
 
-    <article class="panel-card">
-        <div class="panel-card-header">
-            <h2>Acciones rapidas</h2>
-        </div>
-        <div class="list-stack">
-            <a class="btn btn-primary btn-full" href="{{ url_for('admin.new_appointment') }}">Crear cita manual</a>
-            <a class="btn btn-secondary btn-full" href="{{ url_for('admin.blocked_slots') }}">Bloquear horario</a>
-            <a class="btn btn-secondary btn-full" href="{{ url_for('admin.services') }}">Gestionar servicios</a>
-            <a class="btn btn-secondary btn-full" href="{{ url_for('admin.barbers') }}">Gestionar barberos</a>
-        </div>
-    </article>
+<section class="panel-card">
+    <div class="panel-card-header">
+        <h2>Acciones rapidas</h2>
+    </div>
+    <div class="quick-actions-grid">
+        <a class="btn btn-primary btn-full" href="{{ url_for('admin.new_appointment') }}">Crear cita manual</a>
+        <a class="btn btn-secondary btn-full" href="{{ url_for('business.settings') }}">Editar negocio</a>
+        <a class="btn btn-secondary btn-full" href="{{ url_for('business.styles') }}">Gestionar estilos</a>
+        <a class="btn btn-secondary btn-full" href="{{ url_for('business.promotions') }}">Crear promocion</a>
+        <a class="btn btn-secondary btn-full" href="{{ url_for('business.location') }}">Actualizar ubicacion</a>
+        <a class="btn btn-secondary btn-full" href="{{ url_for('admin.blocked_slots') }}">Bloquear horario</a>
+    </div>
 </section>
 {% endblock %}

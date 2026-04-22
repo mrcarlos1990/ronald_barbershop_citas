@@ -68,7 +68,7 @@
                             <td><span class="status-badge status-{{ 'confirmada' if barber.activo else 'cancelada' }}">{{ "Activo" if barber.activo else "Inactivo" }}</span></td>
                             <td class="table-actions">
                                 <a class="text-link" href="{{ url_for('admin.barbers', edit=barber.id) }}">Editar</a>
-                                <form method="post" action="{{ url_for('admin.delete_barber', barber_id=barber.id) }}">
+                                <form method="post" action="{{ url_for('admin.delete_barber', barber_id=barber.id) }}" data-confirm="Este barbero sera eliminado. Deseas continuar?">
                                     <button class="text-button danger-text" type="submit">Eliminar</button>
                                 </form>
                             </td>

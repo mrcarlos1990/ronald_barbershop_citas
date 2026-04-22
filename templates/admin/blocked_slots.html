@@ -62,7 +62,7 @@
                             <td>{{ block.barbero.nombre if block.barbero else "General" }}</td>
                             <td>{{ block.motivo }}</td>
                             <td class="table-actions">
-                                <form method="post" action="{{ url_for('admin.delete_blocked_slot', block_id=block.id) }}">
+                                <form method="post" action="{{ url_for('admin.delete_blocked_slot', block_id=block.id) }}" data-confirm="Este bloqueo sera eliminado. Deseas continuar?">
                                     <button class="text-button danger-text" type="submit">Eliminar</button>
                                 </form>
                             </td>
