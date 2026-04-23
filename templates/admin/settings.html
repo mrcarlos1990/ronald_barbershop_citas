@@ -552,8 +552,17 @@
                         </select>
                     </div>
                     <div class="form-field">
-                        <label for="working_days">Dias laborables</label>
-                        <input id="working_days" name="working_days" type="text" value="{{ settings_record.working_days or '' }}" placeholder="Lunes a Sabado">
+                        <label>Dias que trabajo</label>
+                        <div class="weekday-selector">
+                            {% for day_index, day_label in weekday_options %}
+                                <label class="weekday-chip">
+                                    <input type="checkbox" name="working_day_indexes" value="{{ day_index }}" {% if day_index in selected_working_day_indexes %}checked{% endif %}>
+                                    <span>{{ day_label }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="working_days" value="{{ settings_record.working_days or '' }}">
+                        <small>Los dias desmarcados no mostraran horarios disponibles al cliente.</small>
                     </div>
                 </div>
             </div>

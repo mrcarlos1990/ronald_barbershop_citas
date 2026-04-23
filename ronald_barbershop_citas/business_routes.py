@@ -20,8 +20,10 @@ from .uploads import UploadValidationError, delete_uploaded_file, save_image_upl
 from .utils import (
     CURRENCY_PRESETS,
     LANGUAGE_LABELS,
+    WEEKDAY_OPTIONS,
     active_promotions_query,
     build_reusable_whatsapp_link,
+    format_working_days,
     get_appearance_settings,
     get_business_settings,
     get_current_tenant_id,
@@ -33,6 +35,7 @@ from .utils import (
     normalize_phone,
     parse_date,
     parse_time,
+    parse_working_day_indexes,
 )
 
 
@@ -82,7 +85,8 @@ def settings():
         province_state = (request.form.get("province_state") or "").strip()
         country = (request.form.get("country") or "").strip()
         google_maps_url = (request.form.get("google_maps_url") or "").strip()
-        working_days = (request.form.get("working_days") or "").strip()
+        selected_working_days = request.form.getlist("working_day_indexes")
+        working_days = format_working_days(selected_working_days) if selected_working_days else (request.form.get("working_days") or "").strip()
         default_language = (request.form.get("default_language") or "es").strip().lower()
         currency_code = (request.form.get("currency_code") or "USD").strip().upper()
         currency_symbol = (request.form.get("currency_symbol") or "").strip()
@@ -125,6 +129,8 @@ def settings():
             errors.append("Ingresa un correo valido.")
         if not opening_time or not closing_time or opening_time >= closing_time:
             errors.append("Define un horario de apertura y cierre valido.")
+        if not working_days:
+            errors.append("Selecciona al menos un dia laborable.")
         if interval not in {15, 20, 30, 45, 60}:
             errors.append("El intervalo debe ser 15, 20, 30, 45 o 60 minutos.")
         if visual_theme not in THEME_OPTIONS:
@@ -303,6 +309,8 @@ def settings():
         theme_options=THEME_OPTIONS,
         language_options=LANGUAGE_LABELS,
         currency_options=CURRENCY_PRESETS,
+        weekday_options=WEEKDAY_OPTIONS,
+        selected_working_day_indexes=parse_working_day_indexes(settings_record.working_days),
     )
 
 

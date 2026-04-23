@@ -45,6 +45,16 @@ CURRENCY_PRESETS = {
     "MXN": {"symbol": "MX$"},
 }
 
+WEEKDAY_OPTIONS = [
+    (0, "Lunes"),
+    (1, "Martes"),
+    (2, "Miercoles"),
+    (3, "Jueves"),
+    (4, "Viernes"),
+    (5, "Sabado"),
+    (6, "Domingo"),
+]
+
 TRANSLATIONS = {
     "es": {
         "nav.home": "Inicio",
@@ -227,6 +237,58 @@ def is_valid_phone(phone: str | None) -> bool:
     if len(digits) == 10:
         return True
     return len(digits) == 11 and digits.startswith("1")
+
+
+def _normalize_weekday_text(value: str | None) -> str:
+    normalized = (value or "").strip().lower()
+    replacements = {
+        "á": "a",
+        "é": "e",
+        "í": "i",
+        "ó": "o",
+        "ú": "u",
+        "ñ": "n",
+    }
+    for source, target in replacements.items():
+        normalized = normalized.replace(source, target)
+    return normalized
+
+
+def parse_working_day_indexes(value: str | None) -> set[int]:
+    text = _normalize_weekday_text(value)
+    if not text:
+        return set(range(6))
+
+    if "todos" in text or "lunes a domingo" in text or "lunes-domingo" in text:
+        return set(range(7))
+    if "lunes a sabado" in text or "lunes-sabado" in text:
+        return set(range(6))
+    if "lunes a viernes" in text or "lunes-viernes" in text:
+        return set(range(5))
+
+    numeric_parts = {part.strip() for part in re.split(r"[,;|]", text)}
+    selected: set[int] = set()
+    for index, label in WEEKDAY_OPTIONS:
+        if str(index) in numeric_parts or _normalize_weekday_text(label) in text:
+            selected.add(index)
+    return selected
+
+
+def format_working_days(indexes: list[str] | list[int] | set[int]) -> str:
+    selected = sorted({int(index) for index in indexes if str(index).isdigit() and 0 <= int(index) <= 6})
+    if selected == list(range(7)):
+        return "Todos los dias"
+    if selected == list(range(6)):
+        return "Lunes a Sabado"
+    if selected == list(range(5)):
+        return "Lunes a Viernes"
+    labels = dict(WEEKDAY_OPTIONS)
+    return ", ".join(labels[index] for index in selected)
+
+
+def is_business_day(target_date: date, settings: BusinessSettings | None = None, tenant_id: int | None = None) -> bool:
+    current_settings = settings or get_business_settings(tenant_id=tenant_id)
+    return target_date.weekday() in parse_working_day_indexes(current_settings.working_days)
 
 
 def build_whatsapp_target(phone: str | None) -> str:
@@ -485,6 +547,9 @@ def is_slot_inside_business_hours(
     tenant_id: int | None = None,
 ) -> bool:
     settings = get_business_settings(tenant_id=tenant_id)
+    if not is_business_day(target_date, settings=settings):
+        return False
+
     allowed_slots = build_daily_slots(settings, duration_minutes)
     if start_time not in allowed_slots:
         return False

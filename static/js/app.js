@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initSidebarToggle();
     initConfirmActions();
     initImagePreviews();
+    initBlockedScheduleMode();
     initPasswordConfirmation();
     initRevealAnimations();
     initCountUp();
@@ -83,6 +84,28 @@ function initImagePreviews() {
             });
             reader.readAsDataURL(file);
         });
+    });
+}
+
+function initBlockedScheduleMode() {
+    const forms = document.querySelectorAll("form[data-blocked-schedule-form]");
+    forms.forEach((form) => {
+        const radios = form.querySelectorAll('input[name="block_type"]');
+        const startInput = form.querySelector('input[name="hora_inicio"]');
+        const endInput = form.querySelector('input[name="hora_fin"]');
+        const sync = () => {
+            const selected = form.querySelector('input[name="block_type"]:checked');
+            const isFullDay = selected && selected.value === "full_day";
+            [startInput, endInput].forEach((input) => {
+                if (!input) {
+                    return;
+                }
+                input.closest(".form-field")?.classList.toggle("is-muted", Boolean(isFullDay));
+            });
+        };
+
+        radios.forEach((radio) => radio.addEventListener("change", sync));
+        sync();
     });
 }
 

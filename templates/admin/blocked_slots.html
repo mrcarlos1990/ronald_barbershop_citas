@@ -1,15 +1,31 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Horarios bloqueados | {{ global_settings.nombre_negocio }}{% endblock %}
-{% block admin_heading %}Bloqueo manual de horarios{% endblock %}
+{% block title %}Horarios | {{ global_settings.nombre_negocio }}{% endblock %}
+{% block admin_heading %}Horarios y ausencias{% endblock %}
 
 {% block admin_content %}
 <section class="admin-grid two-col">
     <article class="panel-card">
         <div class="panel-card-header">
-            <h2>Nuevo bloqueo</h2>
+            <div>
+                <span class="panel-label">Disponibilidad</span>
+                <h2>Marcar ausencia o dia no laborable</h2>
+            </div>
         </div>
-        <form class="form-grid" method="post">
+        <form class="form-grid" method="post" data-blocked-schedule-form>
+            <div class="form-field full-width">
+                <label>Tipo de bloqueo</label>
+                <div class="toggle-grid">
+                    <label class="checkbox-field">
+                        <input type="radio" name="block_type" value="full_day" checked>
+                        <span>No trabajo ese dia completo</span>
+                    </label>
+                    <label class="checkbox-field">
+                        <input type="radio" name="block_type" value="range">
+                        <span>Estoy ausente en una hora especifica</span>
+                    </label>
+                </div>
+            </div>
             <div class="form-field">
                 <label for="fecha">Fecha</label>
                 <input id="fecha" name="fecha" type="date" required>
@@ -25,23 +41,31 @@
             </div>
             <div class="form-field">
                 <label for="hora_inicio">Hora inicio</label>
-                <input id="hora_inicio" name="hora_inicio" type="time" required>
+                <input id="hora_inicio" name="hora_inicio" type="time" value="{{ settings_record.hora_apertura.strftime('%H:%M') }}">
             </div>
             <div class="form-field">
                 <label for="hora_fin">Hora fin</label>
-                <input id="hora_fin" name="hora_fin" type="time" required>
+                <input id="hora_fin" name="hora_fin" type="time" value="{{ settings_record.hora_cierre.strftime('%H:%M') }}">
             </div>
             <div class="form-field full-width">
                 <label for="motivo">Motivo opcional</label>
-                <input id="motivo" name="motivo" type="text" placeholder="Ejemplo: almuerzo, mantenimiento, evento">
+                <input id="motivo" name="motivo" type="text" placeholder="Ejemplo: no laboro, almuerzo, diligencia, mantenimiento">
             </div>
-            <button class="btn btn-primary" type="submit">Bloquear horario</button>
+            <div class="panel-note full-width">
+                <strong>Horario actual:</strong>
+                {{ settings_record.hora_apertura|display_time }} - {{ settings_record.hora_cierre|display_time }}.
+                Para cambiar apertura, cierre o dias que trabajas, entra a <a class="text-link" href="{{ url_for('admin.settings') }}">Ajustes</a>.
+            </div>
+            <button class="btn btn-primary" type="submit">Guardar bloqueo</button>
         </form>
     </article>
 
     <article class="panel-card">
         <div class="panel-card-header">
-            <h2>Bloqueos existentes</h2>
+            <div>
+                <span class="panel-label">Agenda cerrada</span>
+                <h2>Bloqueos existentes</h2>
+            </div>
         </div>
         <div class="table-wrapper">
             <table class="data-table">

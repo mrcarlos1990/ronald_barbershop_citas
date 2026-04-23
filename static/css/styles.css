@@ -2392,6 +2392,47 @@ textarea {
         #09090c;
 }
 
+.weekday-selector {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.weekday-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.weekday-chip input {
+    accent-color: var(--button, var(--gold));
+}
+
+.weekday-chip:has(input:checked) {
+    color: var(--text);
+    border-color: color-mix(in srgb, var(--button, var(--gold)) 40%, transparent);
+    background: color-mix(in srgb, var(--button, var(--gold)) 14%, transparent);
+}
+
+.panel-note {
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.form-field.is-muted {
+    opacity: 0.58;
+}
+
 .auth-brand-image {
     width: min(100%, 420px);
     max-height: 280px;
@@ -2492,6 +2533,10 @@ textarea {
 
 @media (max-width: 720px) {
     .appearance-preset-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .weekday-selector {
         grid-template-columns: 1fr;
     }
 }

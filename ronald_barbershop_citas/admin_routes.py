@@ -524,12 +524,21 @@ def delete_appointment(appointment_id: int):
 @admin_required
 def blocked_slots():
     tenant_id = get_current_tenant_id()
+    settings = get_business_settings(tenant_id=tenant_id)
     if request.method == "POST":
+        block_type = (request.form.get("block_type") or "range").strip()
         booking_date = parse_date(request.form.get("fecha"))
         start_time = parse_time(request.form.get("hora_inicio"))
         end_time = parse_time(request.form.get("hora_fin"))
-        reason = (request.form.get("motivo") or "").strip() or "Bloqueo manual"
+        reason = (request.form.get("motivo") or "").strip()
         barber_id = request.form.get("barbero_id", type=int)
+
+        if block_type == "full_day":
+            start_time = settings.hora_apertura
+            end_time = settings.hora_cierre
+            reason = reason or "No laboro este dia"
+        else:
+            reason = reason or "Ausente / no laborando"
 
         if not booking_date or not start_time or not end_time or end_time <= start_time:
             flash("Completa un rango de horario valido.", "danger")
@@ -551,7 +560,7 @@ def blocked_slots():
 
     barbers = Barber.query.filter_by(tenant_id=tenant_id, activo=True).order_by(Barber.nombre.asc()).all()
     blocked_list = BlockedSchedule.query.filter_by(tenant_id=tenant_id).order_by(BlockedSchedule.fecha.desc(), BlockedSchedule.hora_inicio.desc()).all()
-    return render_template("admin/blocked_slots.html", barbers=barbers, blocked_list=blocked_list)
+    return render_template("admin/blocked_slots.html", barbers=barbers, blocked_list=blocked_list, settings_record=settings)
 
 
 @admin_bp.route("/blocked-slots/<int:block_id>/delete", methods=["POST"])
