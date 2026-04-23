@@ -861,6 +861,14 @@ textarea {
     background: rgba(255, 255, 255, 0.02);
 }
 
+.admin-nav a.is-active,
+.admin-nav a:hover {
+    color: var(--text);
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--button, var(--gold)) 24%, transparent), rgba(255, 255, 255, 0.04));
+    border: 1px solid color-mix(in srgb, var(--button, var(--gold)) 32%, transparent);
+}
+
 .admin-main {
     padding: 28px;
 }
@@ -1556,6 +1564,12 @@ textarea {
 .theme-luxury_modern {
     --gold: #e6c785;
     --red: #aa5a26;
+}
+
+.theme-street_modern {
+    --gold: #f6c36d;
+    --red: #861d2c;
+    --accent: #11a7ff;
 }
 
 .page-loader {
@@ -2315,6 +2329,144 @@ textarea {
     color: var(--text);
 }
 
+.appearance-hero {
+    background:
+        radial-gradient(circle at 82% 20%, color-mix(in srgb, var(--accent, #0ea5e9) 22%, transparent), transparent 28%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+}
+
+.appearance-preset-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.appearance-preset-card {
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--gold) 12%, transparent), transparent 30%),
+        rgba(255, 255, 255, 0.035);
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.appearance-preset-card:hover,
+.appearance-preset-card:has(input:checked) {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+    background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--gold) 22%, transparent), transparent 32%),
+        rgba(255, 255, 255, 0.06);
+}
+
+.appearance-preset-card input {
+    accent-color: var(--button, var(--gold));
+}
+
+.appearance-preset-card span,
+.appearance-live-preview h3 {
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+}
+
+.appearance-preset-card small,
+.appearance-live-preview p {
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.appearance-live-preview {
+    display: grid;
+    gap: 14px;
+    margin: 24px 0;
+    padding: 24px;
+    border-radius: 26px;
+    border: 1px solid var(--border-strong);
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--button, var(--gold)) 15%, transparent), rgba(255, 255, 255, 0.04)),
+        #09090c;
+}
+
+.auth-brand-image {
+    width: min(100%, 420px);
+    max-height: 280px;
+    object-fit: cover;
+    margin-top: 24px;
+    border-radius: 28px;
+    border: 1px solid var(--border-strong);
+    box-shadow: var(--shadow);
+}
+
+.footer-brand-logo {
+    width: 74px;
+    height: 74px;
+    object-fit: contain;
+    display: block;
+    margin-bottom: 12px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.appearance-solid .btn-primary,
+.appearance-pill_glow .btn-primary {
+    background: linear-gradient(135deg, var(--button, var(--gold)), var(--highlight, #f6c36d));
+}
+
+.appearance-outline .btn-primary {
+    background: transparent;
+    color: var(--button, var(--gold));
+    border-color: var(--button, var(--gold));
+}
+
+.appearance-sharp .btn,
+.borders-straight .btn,
+.borders-straight .panel-card,
+.borders-straight .service-card {
+    border-radius: 4px;
+}
+
+.borders-soft .panel-card,
+.borders-soft .service-card,
+.borders-soft .image-preview-card {
+    border-radius: 14px;
+}
+
+.cards-solid_dark .panel-card,
+.cards-solid_dark .service-card,
+.cards-solid_dark .promo-admin-card {
+    background: #0b0b0f;
+}
+
+.cards-editorial .panel-card,
+.cards-editorial .service-card,
+.cards-editorial .promo-admin-card {
+    border-left: 3px solid var(--button, var(--gold));
+}
+
+.no-motion *,
+.no-motion *::before,
+.no-motion *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+.urban-mode .site-bg {
+    background:
+        radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--accent, #0ea5e9) 12%, transparent), transparent 24%),
+        radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--red) 18%, transparent), transparent 28%),
+        linear-gradient(135deg, #030305, #111116);
+}
+
+.premium-dark-mode {
+    background: #050507;
+}
+
 @media (max-width: 1080px) {
     .premium-proof-grid {
         grid-template-columns: 1fr;
@@ -2335,5 +2487,11 @@ textarea {
     .hero-trust-row span {
         width: 100%;
         justify-content: center;
+    }
+}
+
+@media (max-width: 720px) {
+    .appearance-preset-grid {
+        grid-template-columns: 1fr;
     }
 }

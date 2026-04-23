@@ -18,3 +18,8 @@ class Config:
     JSON_SORT_KEYS = False
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024
     ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+    IMAGE_STORAGE_BACKEND = os.getenv("IMAGE_STORAGE_BACKEND", "local").lower()
+    CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME", "")
+    CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY", "")
+    CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET", "")
+    CLOUDINARY_FOLDER = os.getenv("CLOUDINARY_FOLDER", "ronald_barbershop")

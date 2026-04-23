@@ -9,11 +9,14 @@
         :root {
             --gold: {{ global_settings.primary_color or '#d2b271' }};
             --red: {{ global_settings.secondary_color or '#7f1f1f' }};
+            --accent: {{ global_settings.accent_color or '#0ea5e9' }};
+            --button: {{ global_settings.button_color or global_settings.primary_color or '#d2b271' }};
+            --highlight: {{ global_settings.highlight_color or '#f6c36d' }};
             --border-strong: color-mix(in srgb, {{ global_settings.primary_color or '#d2b271' }} 35%, transparent);
         }
     </style>
 </head>
-<body class="admin-body theme-{{ global_settings.visual_theme or 'urban_gold' }}">
+<body class="admin-body theme-{{ global_settings.visual_theme or 'urban_gold' }} appearance-{{ current_appearance.button_style or 'pill_glow' }} cards-{{ current_appearance.card_style or 'glass' }} borders-{{ current_appearance.border_style or 'rounded' }} {% if current_appearance.urban_mode %}urban-mode{% endif %} {% if current_appearance.dark_mode %}premium-dark-mode{% endif %} {% if not current_appearance.enable_animations %}no-motion{% endif %}">
     <div class="page-loader" id="page-loader" aria-hidden="true">
         <div class="loader-mark">
             <span class="loader-bar"></span>
@@ -45,13 +48,15 @@
                 <a href="{{ url_for('admin.barbers') }}"><span class="nav-icon">BR</span><span>Barberos</span></a>
                 <a href="{{ url_for('admin.services') }}"><span class="nav-icon">SV</span><span>Servicios</span></a>
                 <a href="{{ url_for('business.styles') }}"><span class="nav-icon">EC</span><span>Estilos de cortes</span></a>
-                <a href="{{ url_for('business.settings') }}"><span class="nav-icon">AJ</span><span>Ajustes del negocio</span></a>
-                <a href="{{ url_for('business.location') }}"><span class="nav-icon">UB</span><span>Ubicacion</span></a>
                 <a href="{{ url_for('business.promotions') }}"><span class="nav-icon">PR</span><span>Promociones</span></a>
+                <a href="{{ url_for('business.location') }}"><span class="nav-icon">UB</span><span>Ubicacion</span></a>
+                <a href="{{ url_for('admin.settings') }}"><span class="nav-icon"><i class="fas fa-cog" aria-hidden="true"></i>AJ</span><span>Ajustes</span></a>
+                <a href="{{ url_for('business.appearance') }}"><span class="nav-icon">AP</span><span>Apariencia</span></a>
+                <a href="{{ url_for('business.subscription') }}"><span class="nav-icon">SU</span><span>Suscripcion</span></a>
                 <span class="admin-nav-label">Crecimiento</span>
                 <span class="admin-nav-muted">Reportes · Proximamente</span>
-                <span class="admin-nav-muted">Apariencia · Integrado en Ajustes</span>
-                <span class="admin-nav-muted">Suscripcion · Trial activo</span>
+                <span class="admin-nav-muted">Recordatorios - Proximamente</span>
+                <span class="admin-nav-muted">Cupones - Proximamente</span>
             </nav>
 
             <div class="sidebar-footer">

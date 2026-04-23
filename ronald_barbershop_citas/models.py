@@ -141,6 +141,7 @@ class BusinessSettings(db.Model, TimestampMixin):
     tenant_id = db.Column(db.Integer, db.ForeignKey("tenants.id"), nullable=False, unique=True, index=True)
     business_name = db.Column(db.String(120), nullable=False, default="Ronald BarberShop")
     slogan = db.Column(db.String(180), nullable=False, default="Precision, estilo y presencia en cada corte.")
+    description = db.Column(db.Text)
     phone = db.Column(db.String(30))
     whatsapp = db.Column(db.String(30), nullable=False, default="809-984-6863")
     email = db.Column(db.String(120))
@@ -151,12 +152,24 @@ class BusinessSettings(db.Model, TimestampMixin):
     country = db.Column(db.String(120), default="Republica Dominicana")
     google_maps_url = db.Column(db.String(255))
     logo_url = db.Column(db.String(255))
+    secondary_logo_url = db.Column(db.String(255))
     banner_url = db.Column(db.String(255))
+    cover_url = db.Column(db.String(255))
+    featured_image_url = db.Column(db.String(255))
+    login_image_url = db.Column(db.String(255))
+    background_image_url = db.Column(db.String(255))
     logo_path = db.Column(db.String(255))
+    secondary_logo_path = db.Column(db.String(255))
     banner_path = db.Column(db.String(255))
+    cover_path = db.Column(db.String(255))
     featured_image_path = db.Column(db.String(255))
+    login_image_path = db.Column(db.String(255))
+    background_image_path = db.Column(db.String(255))
     primary_color = db.Column(db.String(20), nullable=False, default="#d2b271")
     secondary_color = db.Column(db.String(20), nullable=False, default="#7f1f1f")
+    accent_color = db.Column(db.String(20), nullable=False, default="#0ea5e9")
+    button_color = db.Column(db.String(20), nullable=False, default="#d2b271")
+    highlight_color = db.Column(db.String(20), nullable=False, default="#f6c36d")
     visual_theme = db.Column(db.String(80), nullable=False, default="urban_gold")
     default_language = db.Column(db.String(10), nullable=False, default="es")
     currency_code = db.Column(db.String(10), nullable=False, default="USD")
@@ -197,6 +210,8 @@ class BusinessSettings(db.Model, TimestampMixin):
     show_gallery_styles = db.Column(db.Boolean, nullable=False, default=True)
     show_promotions = db.Column(db.Boolean, nullable=False, default=True)
     show_testimonials = db.Column(db.Boolean, nullable=False, default=True)
+    show_banner = db.Column(db.Boolean, nullable=False, default=True)
+    show_how_to_get = db.Column(db.Boolean, nullable=False, default=True)
     show_language_selector = db.Column(db.Boolean, nullable=False, default=True)
 
     tenant = db.relationship("Tenant", back_populates="business_settings")
@@ -238,12 +253,36 @@ class BusinessSettings(db.Model, TimestampMixin):
         return self.logo_path or self.logo_url
 
     @property
+    def secondary_logo_src(self):
+        return self.secondary_logo_path or self.secondary_logo_url
+
+    @property
     def banner_src(self):
         return self.banner_path or self.banner_url
 
     @property
+    def cover_src(self):
+        return self.cover_path or self.cover_url or self.banner_src
+
+    @property
     def featured_image_src(self):
-        return self.featured_image_path
+        return self.featured_image_path or self.featured_image_url
+
+    @property
+    def login_image_src(self):
+        return self.login_image_path or self.login_image_url
+
+    @property
+    def background_image_src(self):
+        return self.background_image_path or self.background_image_url
+
+    @property
+    def show_styles(self):
+        return self.show_gallery_styles
+
+    @show_styles.setter
+    def show_styles(self, value):
+        self.show_gallery_styles = bool(value)
 
 
 class AppearanceSettings(db.Model, TimestampMixin):
@@ -253,6 +292,15 @@ class AppearanceSettings(db.Model, TimestampMixin):
     tenant_id = db.Column(db.Integer, db.ForeignKey("tenants.id"), nullable=False, unique=True, index=True)
     featured_image_url = db.Column(db.String(255))
     visual_style = db.Column(db.String(80), nullable=False, default="urban_gold")
+    theme_name = db.Column(db.String(80), nullable=False, default="Barberia urbana")
+    button_style = db.Column(db.String(80), nullable=False, default="pill_glow")
+    card_style = db.Column(db.String(80), nullable=False, default="glass")
+    border_style = db.Column(db.String(80), nullable=False, default="rounded")
+    header_style = db.Column(db.String(80), nullable=False, default="floating")
+    footer_style = db.Column(db.String(80), nullable=False, default="premium")
+    enable_animations = db.Column(db.Boolean, nullable=False, default=True)
+    urban_mode = db.Column(db.Boolean, nullable=False, default=True)
+    dark_mode = db.Column(db.Boolean, nullable=False, default=True)
     show_services = db.Column(db.Boolean, nullable=False, default=True)
     show_barbers = db.Column(db.Boolean, nullable=False, default=True)
     show_gallery_styles = db.Column(db.Boolean, nullable=False, default=True)
@@ -328,6 +376,7 @@ class Promotion(db.Model, TimestampMixin):
     title = db.Column(db.String(140), nullable=False)
     description = db.Column(db.Text)
     discount_percentage = db.Column(db.Float, nullable=False, default=0)
+    special_price = db.Column(db.Float)
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
     image_url = db.Column(db.String(255))

@@ -11,6 +11,9 @@
             <p>
                 Una vez registrado, podras agendar citas, ver tu historial, cancelar o reprogramar cuando la politica lo permita.
             </p>
+            {% if global_settings.login_image_src %}
+                <img class="auth-brand-image" src="{{ media_url(global_settings.login_image_src) }}" alt="Registro {{ global_settings.nombre_negocio }}">
+            {% endif %}
         </div>
 
         <form class="form-card auth-card" method="post">

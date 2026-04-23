@@ -1,0 +1,246 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Apariencia | {{ global_settings.nombre_negocio }}{% endblock %}
+{% block admin_heading %}Apariencia{% endblock %}
+
+{% block admin_content %}
+<section class="dashboard-hero panel-card appearance-hero">
+    <div class="dashboard-hero-copy">
+        <span class="eyebrow">Visual command center</span>
+        <h2>Define como se siente tu barberia en pantalla</h2>
+        <p>Controla tema, colores, botones, tarjetas, bordes, animaciones y fondos para que la experiencia publica tenga identidad propia sin tocar codigo.</p>
+    </div>
+    <div class="dashboard-hero-actions">
+        <a class="btn btn-secondary" href="{{ url_for('business.settings') }}">Ajustes del negocio</a>
+        {% if current_tenant %}
+            <a class="btn btn-primary" href="{{ url_for('business.public_business', tenant_slug=current_tenant.slug) }}" target="_blank" rel="noreferrer">Ver landing</a>
+        {% endif %}
+    </div>
+</section>
+
+<form class="admin-content" method="post" enctype="multipart/form-data">
+    <section class="admin-grid two-col">
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <div>
+                    <span class="panel-label">Tema</span>
+                    <h2>Preset visual</h2>
+                </div>
+            </div>
+            <div class="appearance-preset-grid">
+                {% for preset in appearance_presets %}
+                    <label class="appearance-preset-card">
+                        <input type="radio" name="theme_name" value="{{ preset }}" {% if appearance_record.theme_name == preset %}checked{% endif %}>
+                        <span>{{ preset }}</span>
+                        <small>
+                            {% if 'urbana' in preset|lower %}Negro, dorado, contraste fuerte y look calle premium.{% endif %}
+                            {% if 'premium' in preset|lower %}Lujo oscuro con brillo controlado y detalles comerciales.{% endif %}
+                            {% if 'clasica' in preset|lower %}Inspiracion barber tradicional con presencia elegante.{% endif %}
+                            {% if 'minimalista' in preset|lower %}Mas limpio, moderno, ligero y directo a conversion.{% endif %}
+                        </small>
+                    </label>
+                {% endfor %}
+            </div>
+
+            <div class="form-grid single-col">
+                <div class="form-field">
+                    <label for="visual_theme">Tema tecnico</label>
+                    <select id="visual_theme" name="visual_theme">
+                        {% for option in theme_options %}
+                            <option value="{{ option }}" {% if settings_record.visual_theme == option %}selected{% endif %}>{{ option.replace('_', ' ')|title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="primary_color">Color principal</label>
+                        <input id="primary_color" name="primary_color" type="color" value="{{ settings_record.primary_color or '#d2b271' }}">
+                    </div>
+                    <div class="form-field">
+                        <label for="secondary_color">Color secundario</label>
+                        <input id="secondary_color" name="secondary_color" type="color" value="{{ settings_record.secondary_color or '#7f1f1f' }}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="accent_color">Acento urbano</label>
+                        <input id="accent_color" name="accent_color" type="color" value="{{ settings_record.accent_color or '#0ea5e9' }}">
+                    </div>
+                    <div class="form-field">
+                        <label for="button_color">Botones principales</label>
+                        <input id="button_color" name="button_color" type="color" value="{{ settings_record.button_color or '#d2b271' }}">
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label for="highlight_color">Textos destacados</label>
+                    <input id="highlight_color" name="highlight_color" type="color" value="{{ settings_record.highlight_color or '#f6c36d' }}">
+                </div>
+            </div>
+        </article>
+
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <div>
+                    <span class="panel-label">Componentes</span>
+                    <h2>Botones, tarjetas y bordes</h2>
+                </div>
+            </div>
+            <div class="form-grid single-col">
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="button_style">Estilo de botones</label>
+                        <select id="button_style" name="button_style">
+                            {% for option in button_style_options %}
+                                <option value="{{ option }}" {% if appearance_record.button_style == option %}selected{% endif %}>{{ option.replace('_', ' ')|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="card_style">Estilo de cards</label>
+                        <select id="card_style" name="card_style">
+                            {% for option in card_style_options %}
+                                <option value="{{ option }}" {% if appearance_record.card_style == option %}selected{% endif %}>{{ option.replace('_', ' ')|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="border_style">Forma de bordes</label>
+                        <select id="border_style" name="border_style">
+                            {% for option in border_style_options %}
+                                <option value="{{ option }}" {% if appearance_record.border_style == option %}selected{% endif %}>{{ option|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="header_style">Estilo de header</label>
+                        <select id="header_style" name="header_style">
+                            {% for option in header_style_options %}
+                                <option value="{{ option }}" {% if appearance_record.header_style == option %}selected{% endif %}>{{ option|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label for="footer_style">Estilo de footer</label>
+                    <select id="footer_style" name="footer_style">
+                        {% for option in footer_style_options %}
+                            <option value="{{ option }}" {% if appearance_record.footer_style == option %}selected{% endif %}>{{ option|title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="toggle-grid">
+                    <label class="checkbox-field">
+                        <input type="checkbox" name="urban_mode" {% if appearance_record.urban_mode %}checked{% endif %}>
+                        <span>Activar modo urbano</span>
+                    </label>
+                    <label class="checkbox-field">
+                        <input type="checkbox" name="dark_mode" {% if appearance_record.dark_mode %}checked{% endif %}>
+                        <span>Activar premium oscuro</span>
+                    </label>
+                    <label class="checkbox-field">
+                        <input type="checkbox" name="enable_animations" {% if appearance_record.enable_animations %}checked{% endif %}>
+                        <span>Animaciones suaves</span>
+                    </label>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section class="admin-grid two-col">
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <div>
+                    <span class="panel-label">Imagenes de ambiente</span>
+                    <h2>Destacado y fondo</h2>
+                </div>
+            </div>
+            <div class="settings-media-grid">
+                <div class="media-uploader">
+                    <div class="image-preview-card wide">
+                        {% if settings_record.featured_image_src %}
+                            <img id="appearance-featured-preview" src="{{ media_url(settings_record.featured_image_src) }}" alt="Imagen destacada">
+                        {% else %}
+                            <div id="appearance-featured-preview" class="image-placeholder image-placeholder-featured">
+                                <strong>Imagen destacada</strong>
+                                <span>Ideal para hero, cards y login.</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label for="featured_image_file">Subir imagen destacada</label>
+                        <input id="featured_image_file" name="featured_image_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="appearance-featured-preview">
+                    </div>
+                    <div class="form-field">
+                        <label for="featured_image_url">URL destacada alternativa</label>
+                        <input id="featured_image_url" name="featured_image_url" type="url" value="{{ settings_record.featured_image_url or appearance_record.featured_image_url or '' }}" placeholder="https://...">
+                    </div>
+                </div>
+
+                <div class="media-uploader">
+                    <div class="image-preview-card wide">
+                        {% if settings_record.background_image_src %}
+                            <img id="appearance-bg-preview" src="{{ media_url(settings_record.background_image_src) }}" alt="Fondo decorativo">
+                        {% else %}
+                            <div id="appearance-bg-preview" class="image-placeholder image-placeholder-banner">
+                                <strong>Fondo decorativo</strong>
+                                <span>Usalo para texturas, luces o ambiente urbano.</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label for="background_image_file">Subir fondo decorativo</label>
+                        <input id="background_image_file" name="background_image_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="appearance-bg-preview">
+                    </div>
+                    <div class="form-field">
+                        <label for="background_image_url">URL fondo alternativa</label>
+                        <input id="background_image_url" name="background_image_url" type="url" value="{{ settings_record.background_image_url or '' }}" placeholder="https://...">
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel-card panel-card-highlight">
+            <div class="panel-card-header">
+                <div>
+                    <span class="panel-label">Secciones visibles</span>
+                    <h2>Control de landing</h2>
+                </div>
+            </div>
+            <div class="toggle-grid">
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_services" {% if appearance_record.show_services %}checked{% endif %}>
+                    <span>Servicios destacados</span>
+                </label>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_barbers" {% if appearance_record.show_barbers %}checked{% endif %}>
+                    <span>Equipo de barberos</span>
+                </label>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_gallery_styles" {% if appearance_record.show_gallery_styles %}checked{% endif %}>
+                    <span>Galeria de estilos</span>
+                </label>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_promotions" {% if appearance_record.show_promotions %}checked{% endif %}>
+                    <span>Promociones</span>
+                </label>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_testimonials" {% if appearance_record.show_testimonials %}checked{% endif %}>
+                    <span>Testimonios</span>
+                </label>
+            </div>
+            <div class="appearance-live-preview">
+                <span class="eyebrow">Vista previa</span>
+                <h3>{{ settings_record.business_name }}</h3>
+                <p>{{ settings_record.slogan }}</p>
+                <div class="hero-actions compact-actions">
+                    <span class="btn btn-primary">Reservar</span>
+                    <span class="btn btn-secondary">WhatsApp</span>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-full" type="submit">Guardar apariencia</button>
+        </article>
+    </section>
+</form>
+{% endblock %}

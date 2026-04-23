@@ -50,11 +50,15 @@
                     <input id="discount_percentage" name="discount_percentage" type="number" min="0" step="0.1" required>
                 </div>
                 <div class="form-field">
-                    <label for="start_date">Inicio</label>
-                    <input id="start_date" name="start_date" type="date" required>
+                    <label for="special_price">Precio especial opcional</label>
+                    <input id="special_price" name="special_price" type="number" min="0" step="0.01" placeholder="Ej. 20">
                 </div>
             </div>
             <div class="form-row">
+                <div class="form-field">
+                    <label for="start_date">Inicio</label>
+                    <input id="start_date" name="start_date" type="date" required>
+                </div>
                 <div class="form-field">
                     <label for="end_date">Vencimiento</label>
                     <input id="end_date" name="end_date" type="date" required>
@@ -83,7 +87,7 @@
                     {% endif %}
                     <div class="promo-admin-top">
                         <span class="status-badge status-{{ 'completada' if promotion.is_current else 'pendiente' }}">{{ 'Activa' if promotion.is_current else 'Programada / Finalizada' }}</span>
-                        <strong>{{ promotion.discount_percentage }}%</strong>
+                        <strong>{{ promotion.special_price|currency if promotion.special_price else promotion.discount_percentage ~ '%' }}</strong>
                     </div>
                     <h3>{{ promotion.title }}</h3>
                     <p>{{ promotion.description or 'Sin descripcion adicional.' }}</p>

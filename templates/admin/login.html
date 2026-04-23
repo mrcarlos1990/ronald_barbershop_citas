@@ -12,6 +12,9 @@
                 Gestiona citas, horarios, servicios, barberos y clientes desde una interfaz elegante y optimizada
                 para el trabajo diario.
             </p>
+            {% if global_settings.login_image_src %}
+                <img class="auth-brand-image" src="{{ media_url(global_settings.login_image_src) }}" alt="Imagen de acceso {{ global_settings.nombre_negocio }}">
+            {% endif %}
         </div>
 
         <form class="form-card auth-card" method="post">

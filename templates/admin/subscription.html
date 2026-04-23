@@ -1,0 +1,63 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Suscripcion | {{ global_settings.nombre_negocio }}{% endblock %}
+{% block admin_heading %}Suscripcion{% endblock %}
+
+{% block admin_content %}
+<section class="dashboard-hero panel-card">
+    <div class="dashboard-hero-copy">
+        <span class="eyebrow">SaaS readiness</span>
+        <h2>Plan, prueba gratis y crecimiento de la barberia</h2>
+        <p>Este modulo deja preparada la plataforma para vender planes a barberias reales: trial, vencimiento, upgrades, recordatorios y superadmin.</p>
+    </div>
+    <div class="dashboard-hero-actions">
+        <a class="btn btn-secondary" href="{{ url_for('business.settings') }}">Configurar negocio</a>
+        <a class="btn btn-primary" href="{{ url_for('admin.dashboard') }}">Volver al dashboard</a>
+    </div>
+</section>
+
+<section class="admin-grid two-col">
+    <article class="panel-card panel-card-highlight">
+        <div class="panel-card-header">
+            <div>
+                <span class="panel-label">Plan actual</span>
+                <h2>{{ tenant.plan_name if tenant else 'Trial' }}</h2>
+            </div>
+        </div>
+        <div class="summary-grid summary-grid-soft">
+            <div>
+                <span>Negocio</span>
+                <strong>{{ tenant.name if tenant else global_settings.business_name }}</strong>
+            </div>
+            <div>
+                <span>Slug publico</span>
+                <strong>{{ tenant.slug if tenant else '-' }}</strong>
+            </div>
+            <div>
+                <span>Estado</span>
+                <strong>{{ 'Activo' if tenant and tenant.active else 'Pendiente' }}</strong>
+            </div>
+            <div>
+                <span>Prueba gratis</span>
+                <strong>{{ tenant.trial_ends_at|display_datetime if tenant and tenant.trial_ends_at else 'Por configurar' }}</strong>
+            </div>
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-card-header">
+            <div>
+                <span class="panel-label">Preparado para monetizar</span>
+                <h2>Proximos controles SaaS</h2>
+            </div>
+        </div>
+        <ul class="feature-list premium-checks">
+            <li>Planes por barberia y bloqueo por vencimiento.</li>
+            <li>Superadmin para AFCyber SOLUTIONS.</li>
+            <li>Recordatorios de pago por WhatsApp y correo.</li>
+            <li>Metricas de ingresos, citas y crecimiento por tenant.</li>
+            <li>Integracion futura con pasarela de pago.</li>
+        </ul>
+    </article>
+</section>
+{% endblock %}

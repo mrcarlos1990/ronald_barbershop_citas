@@ -241,6 +241,7 @@ DEFAULT_PROMOTIONS = [
         "title": "Semana del caballero",
         "description": "Descuento especial para cortes premium y combos de barba.",
         "discount_percentage": 15,
+        "special_price": None,
         "start_date": date.today(),
         "end_date": date.today() + timedelta(days=15),
         "image_url": "",
@@ -250,6 +251,7 @@ DEFAULT_PROMOTIONS = [
         "title": "Combo ejecutivo",
         "description": "Corte + barba con atencion prioritaria y detalle final.",
         "discount_percentage": 10,
+        "special_price": 20,
         "start_date": date.today(),
         "end_date": date.today() + timedelta(days=30),
         "image_url": "",
@@ -277,6 +279,7 @@ DEFAULT_SOCIAL_LINKS = [
 ]
 
 DEFAULT_PUBLIC_TEXTS = {
+    "description": "Barberia urbana premium con reservas online, WhatsApp y una experiencia visual lista para clientes modernos.",
     "hero_badge_text": "Ronald premium experience",
     "hero_title": "Ronald BarberShop",
     "hero_description": (
@@ -386,6 +389,9 @@ def seed_database() -> None:
             banner_url="",
             primary_color="#d2b271",
             secondary_color="#7f1f1f",
+            accent_color="#0ea5e9",
+            button_color="#d2b271",
+            highlight_color="#f6c36d",
             visual_theme="urban_gold",
             default_language="es",
             currency_code="USD",
@@ -396,6 +402,8 @@ def seed_database() -> None:
             show_gallery_styles=True,
             show_promotions=True,
             show_testimonials=True,
+            show_banner=True,
+            show_how_to_get=True,
             **DEFAULT_PUBLIC_TEXTS,
         )
         db.session.add(settings)
@@ -408,6 +416,9 @@ def seed_database() -> None:
         settings.google_maps_url = settings.google_maps_url or "https://maps.google.com/?q=Ronald+BarberShop+Santo+Domingo"
         settings.primary_color = settings.primary_color or "#d2b271"
         settings.secondary_color = settings.secondary_color or "#7f1f1f"
+        settings.accent_color = settings.accent_color or "#0ea5e9"
+        settings.button_color = settings.button_color or settings.primary_color or "#d2b271"
+        settings.highlight_color = settings.highlight_color or "#f6c36d"
         settings.visual_theme = settings.visual_theme or "urban_gold"
         settings.default_language = settings.default_language or "es"
         settings.currency_code = settings.currency_code or "USD"
@@ -417,6 +428,8 @@ def seed_database() -> None:
         settings.show_gallery_styles = True if settings.show_gallery_styles is None else settings.show_gallery_styles
         settings.show_promotions = True if settings.show_promotions is None else settings.show_promotions
         settings.show_testimonials = True if settings.show_testimonials is None else settings.show_testimonials
+        settings.show_banner = True if settings.show_banner is None else settings.show_banner
+        settings.show_how_to_get = True if settings.show_how_to_get is None else settings.show_how_to_get
         for field, value in DEFAULT_PUBLIC_TEXTS.items():
             if not getattr(settings, field, None):
                 setattr(settings, field, value)
@@ -440,6 +453,15 @@ def seed_database() -> None:
             tenant_id=tenant.id,
             featured_image_url="",
             visual_style="urban_gold",
+            theme_name="Barberia urbana",
+            button_style="pill_glow",
+            card_style="glass",
+            border_style="rounded",
+            header_style="floating",
+            footer_style="premium",
+            enable_animations=True,
+            urban_mode=True,
+            dark_mode=True,
             show_services=True,
             show_barbers=True,
             show_gallery_styles=True,
@@ -449,6 +471,15 @@ def seed_database() -> None:
         db.session.add(appearance)
     else:
         appearance.visual_style = appearance.visual_style or "urban_gold"
+        appearance.theme_name = appearance.theme_name or "Barberia urbana"
+        appearance.button_style = appearance.button_style or "pill_glow"
+        appearance.card_style = appearance.card_style or "glass"
+        appearance.border_style = appearance.border_style or "rounded"
+        appearance.header_style = appearance.header_style or "floating"
+        appearance.footer_style = appearance.footer_style or "premium"
+        appearance.enable_animations = True if appearance.enable_animations is None else appearance.enable_animations
+        appearance.urban_mode = True if appearance.urban_mode is None else appearance.urban_mode
+        appearance.dark_mode = True if appearance.dark_mode is None else appearance.dark_mode
 
     admin = AdminUser.query.filter_by(username=DEFAULT_ADMIN_USERNAME).first()
     if admin is None:

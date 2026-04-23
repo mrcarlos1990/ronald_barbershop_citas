@@ -3,7 +3,7 @@
 {% block title %}{{ settings.business_name }} | Experiencia premium de barberia{% endblock %}
 
 {% block content %}
-<section class="hero-section public-hero-shell premium-landing-hero" {% if settings.banner_src %}style="background-image: linear-gradient(120deg, rgba(5, 5, 7, 0.9), rgba(5, 5, 7, 0.62)), url('{{ media_url(settings.banner_src) }}');"{% endif %}>
+<section class="hero-section public-hero-shell premium-landing-hero" {% if settings.show_banner and settings.cover_src %}style="background-image: linear-gradient(120deg, rgba(5, 5, 7, 0.9), rgba(5, 5, 7, 0.62)), url('{{ media_url(settings.cover_src) }}');"{% endif %}>
     <div class="container hero-grid public-hero-grid">
         <div class="hero-copy hero-copy-rich" data-reveal>
             <div class="hero-badge-row">
@@ -24,7 +24,7 @@
             </div>
 
             <p class="hero-description hero-description-wide">
-                {{ settings.hero_description or settings.mensaje_bienvenida or t('landing.hero_description') }}
+                {{ settings.hero_description or settings.description or settings.mensaje_bienvenida or t('landing.hero_description') }}
             </p>
 
             <div class="hero-actions">
@@ -41,7 +41,7 @@
             <div class="hero-actions compact-actions">
                 <a class="btn btn-secondary" href="{{ booking_url }}">{{ t('landing.book_appointment') }}</a>
                 <a class="btn btn-secondary" href="{{ whatsapp_link }}" target="_blank" rel="noreferrer">{{ t('landing.whatsapp') }}</a>
-                {% if location and location.google_maps_url %}
+                {% if settings.show_how_to_get and location and location.google_maps_url %}
                     <a class="btn btn-secondary" href="{{ location.google_maps_url }}" target="_blank" rel="noreferrer">{{ t('landing.how_to_get') }}</a>
                 {% endif %}
             </div>
@@ -233,12 +233,12 @@
                     {% else %}
                         <div class="promo-banner promo-generated-banner">
                             <span>Oferta Ronald</span>
-                            <strong>{{ promotion.discount_percentage }}%</strong>
+                            <strong>{{ promotion.special_price|currency if promotion.special_price else promotion.discount_percentage ~ '%' }}</strong>
                         </div>
                     {% endif %}
                     <div class="promo-admin-top">
                         <span class="status-badge status-confirmada">Activa</span>
-                        <strong>{{ promotion.discount_percentage }}%</strong>
+                        <strong>{{ promotion.special_price|currency if promotion.special_price else promotion.discount_percentage ~ '%' }}</strong>
                     </div>
                     <h3>{{ promotion.title }}</h3>
                     <p>{{ promotion.description or 'Promocion activa disponible por tiempo limitado.' }}</p>
@@ -275,6 +275,7 @@
 </section>
 {% endif %}
 
+{% if settings.show_how_to_get or settings.show_map %}
 <section class="section-block">
     <div class="container admin-grid two-col">
         <article class="panel-card location-panel" data-reveal>
@@ -301,7 +302,7 @@
                     </div>
                 </div>
                 <div class="confirmation-actions">
-                    {% if location and location.google_maps_url %}
+                    {% if settings.show_how_to_get and location and location.google_maps_url %}
                         <a class="btn btn-secondary" href="{{ location.google_maps_url }}" target="_blank" rel="noreferrer">Ver ubicacion</a>
                         <a class="btn btn-primary" href="{{ location.google_maps_url }}" target="_blank" rel="noreferrer">Como llegar</a>
                     {% endif %}
@@ -337,6 +338,7 @@
         </article>
     </div>
 </section>
+{% endif %}
 
 {% if settings.show_testimonials and appearance.show_testimonials %}
 <section class="section-block accent-section">

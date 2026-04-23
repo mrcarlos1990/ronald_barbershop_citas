@@ -315,6 +315,7 @@ def _create_default_business_settings(tenant: Tenant) -> BusinessSettings:
         tenant_id=tenant.id,
         business_name=tenant.name,
         slogan="Precision, estilo y presencia en cada corte.",
+        description="Barberia urbana premium con reservas online, WhatsApp y una experiencia visual lista para clientes modernos.",
         whatsapp="809-984-6863",
         phone="809-984-6863",
         email="info@ronaldbarbershop.com",
@@ -326,6 +327,9 @@ def _create_default_business_settings(tenant: Tenant) -> BusinessSettings:
         logo_path="img/ronald-logo.png",
         primary_color="#d2b271",
         secondary_color="#7f1f1f",
+        accent_color="#0ea5e9",
+        button_color="#d2b271",
+        highlight_color="#f6c36d",
         visual_theme="urban_gold",
         default_language="es",
         currency_code="USD",
@@ -365,6 +369,8 @@ def _create_default_business_settings(tenant: Tenant) -> BusinessSettings:
             "empiece con presencia y puntualidad."
         ),
         show_language_selector=True,
+        show_banner=True,
+        show_how_to_get=True,
     )
     db.session.add(settings)
     db.session.commit()

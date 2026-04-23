@@ -10,11 +10,14 @@
         :root {
             --gold: {{ global_settings.primary_color or '#d2b271' }};
             --red: {{ global_settings.secondary_color or '#7f1f1f' }};
+            --accent: {{ global_settings.accent_color or '#0ea5e9' }};
+            --button: {{ global_settings.button_color or global_settings.primary_color or '#d2b271' }};
+            --highlight: {{ global_settings.highlight_color or '#f6c36d' }};
             --border-strong: color-mix(in srgb, {{ global_settings.primary_color or '#d2b271' }} 35%, transparent);
         }
     </style>
 </head>
-<body class="{% block body_class %}public-body{% endblock %} theme-{{ global_settings.visual_theme or 'urban_gold' }}">
+<body class="{% block body_class %}public-body{% endblock %} theme-{{ global_settings.visual_theme or 'urban_gold' }} appearance-{{ current_appearance.button_style or 'pill_glow' }} cards-{{ current_appearance.card_style or 'glass' }} borders-{{ current_appearance.border_style or 'rounded' }} {% if current_appearance.urban_mode %}urban-mode{% endif %} {% if current_appearance.dark_mode %}premium-dark-mode{% endif %} {% if not current_appearance.enable_animations %}no-motion{% endif %}">
     <div class="page-loader" id="page-loader" aria-hidden="true">
         <div class="loader-mark">
             <span class="loader-bar"></span>
@@ -24,7 +27,7 @@
             <small class="loader-credit">Hecho por la Empresa AFCyber SOLUTIONS</small>
         </div>
     </div>
-    <div class="site-bg"></div>
+    <div class="site-bg" {% if global_settings.background_image_src %}style="background-image: linear-gradient(135deg, rgba(3, 3, 5, 0.88), rgba(3, 3, 5, 0.72)), url('{{ media_url(global_settings.background_image_src) }}');"{% endif %}></div>
 
     <header class="site-header">
         <div class="container nav-shell">
@@ -87,6 +90,9 @@
     <footer class="site-footer">
         <div class="container footer-shell">
             <div>
+                {% if global_settings.secondary_logo_src %}
+                    <img class="footer-brand-logo" src="{{ media_url(global_settings.secondary_logo_src) }}" alt="{{ global_settings.nombre_negocio }}">
+                {% endif %}
                 <strong>{{ global_settings.nombre_negocio }}</strong>
                 <p>{{ global_settings.eslogan }}</p>
                 <div class="developer-signature">

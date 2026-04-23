@@ -645,8 +645,19 @@ def clients():
     )
 
 
-@admin_bp.route("/settings-legacy", methods=["GET"])
+def _render_business_settings():
+    from .business_routes import settings as business_settings_view
+
+    return business_settings_view()
+
+
+@admin_bp.route("/settings", methods=["GET", "POST"])
 @admin_required
 def settings():
-    flash("La configuracion del negocio se gestiona desde el nuevo modulo SaaS.", "info")
-    return redirect(url_for("business.settings"))
+    return _render_business_settings()
+
+
+@admin_bp.route("/settings-legacy", methods=["GET", "POST"])
+@admin_required
+def settings_legacy():
+    return _render_business_settings()

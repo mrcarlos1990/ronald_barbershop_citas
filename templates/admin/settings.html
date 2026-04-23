@@ -45,6 +45,21 @@
                 </div>
 
                 <div class="media-uploader">
+                    <div class="image-preview-card">
+                        {% if settings_record.secondary_logo_src %}
+                            <img id="secondary-logo-preview" src="{{ media_url(settings_record.secondary_logo_src) }}" alt="Logo secundario">
+                        {% else %}
+                            <div id="secondary-logo-preview" class="image-placeholder image-placeholder-logo">RB</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label for="secondary_logo_file">Logo secundario opcional</label>
+                        <input id="secondary_logo_file" name="secondary_logo_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="secondary-logo-preview">
+                        <small>Ideal para footer, login o marcas pequenas.</small>
+                    </div>
+                </div>
+
+                <div class="media-uploader">
                     <div class="image-preview-card wide">
                         {% if settings_record.banner_src %}
                             <img id="banner-preview" src="{{ media_url(settings_record.banner_src) }}" alt="Banner actual">
@@ -59,6 +74,24 @@
                         <label for="banner_file">Banner o portada</label>
                         <input id="banner_file" name="banner_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="banner-preview">
                         <small>Usa una imagen horizontal para el hero publico.</small>
+                    </div>
+                </div>
+
+                <div class="media-uploader">
+                    <div class="image-preview-card wide">
+                        {% if settings_record.cover_src %}
+                            <img id="cover-preview" src="{{ media_url(settings_record.cover_src) }}" alt="Portada landing">
+                        {% else %}
+                            <div id="cover-preview" class="image-placeholder image-placeholder-banner">
+                                <strong>Portada landing</strong>
+                                <span>Imagen fuerte para el primer impacto.</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label for="cover_file">Portada de la landing</label>
+                        <input id="cover_file" name="cover_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="cover-preview">
+                        <small>Se usa como fondo principal si esta activo.</small>
                     </div>
                 </div>
 
@@ -79,6 +112,40 @@
                         <small>Se usa como apoyo visual en la landing y panel.</small>
                     </div>
                 </div>
+
+                <div class="media-uploader">
+                    <div class="image-preview-card wide">
+                        {% if settings_record.login_image_src %}
+                            <img id="login-image-preview" src="{{ media_url(settings_record.login_image_src) }}" alt="Imagen login">
+                        {% else %}
+                            <div id="login-image-preview" class="image-placeholder image-placeholder-featured">
+                                <strong>Imagen del login</strong>
+                                <span>Branding para accesos de admin y cliente.</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label for="login_image_file">Imagen del login</label>
+                        <input id="login_image_file" name="login_image_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="login-image-preview">
+                    </div>
+                </div>
+
+                <div class="media-uploader">
+                    <div class="image-preview-card wide">
+                        {% if settings_record.background_image_src %}
+                            <img id="background-image-preview" src="{{ media_url(settings_record.background_image_src) }}" alt="Fondo decorativo">
+                        {% else %}
+                            <div id="background-image-preview" class="image-placeholder image-placeholder-banner">
+                                <strong>Fondo decorativo</strong>
+                                <span>Textura o ambiente para secciones premium.</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label for="background_image_file">Fondo decorativo</label>
+                        <input id="background_image_file" name="background_image_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="background-image-preview">
+                    </div>
+                </div>
             </div>
 
             <div class="form-grid single-col">
@@ -91,6 +158,10 @@
                     <input id="slogan" name="slogan" type="text" value="{{ settings_record.slogan }}" required>
                 </div>
                 <div class="form-field">
+                    <label for="description">Descripcion corta del negocio</label>
+                    <textarea id="description" name="description" rows="4" placeholder="Describe la experiencia, el ambiente y por que reservar.">{{ settings_record.description or '' }}</textarea>
+                </div>
+                <div class="form-field">
                     <label for="mensaje_bienvenida">Mensaje de bienvenida</label>
                     <textarea id="mensaje_bienvenida" name="mensaje_bienvenida" rows="4">{{ settings_record.mensaje_bienvenida or '' }}</textarea>
                 </div>
@@ -100,13 +171,33 @@
                         <input id="logo_url" name="logo_url" type="url" value="{{ settings_record.logo_url or '' }}" placeholder="https://...">
                     </div>
                     <div class="form-field">
+                        <label for="secondary_logo_url">Logo secundario por URL</label>
+                        <input id="secondary_logo_url" name="secondary_logo_url" type="url" value="{{ settings_record.secondary_logo_url or '' }}" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
                         <label for="banner_url">Banner por URL (opcional)</label>
                         <input id="banner_url" name="banner_url" type="url" value="{{ settings_record.banner_url or '' }}" placeholder="https://...">
                     </div>
+                    <div class="form-field">
+                        <label for="cover_url">Portada por URL (opcional)</label>
+                        <input id="cover_url" name="cover_url" type="url" value="{{ settings_record.cover_url or '' }}" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="featured_image_url">Imagen destacada por URL</label>
+                        <input id="featured_image_url" name="featured_image_url" type="url" value="{{ settings_record.featured_image_url or appearance_record.featured_image_url or '' }}" placeholder="https://...">
+                    </div>
+                    <div class="form-field">
+                        <label for="login_image_url">Imagen login por URL</label>
+                        <input id="login_image_url" name="login_image_url" type="url" value="{{ settings_record.login_image_url or '' }}" placeholder="https://...">
+                    </div>
                 </div>
                 <div class="form-field">
-                    <label for="featured_image_url">Imagen destacada por URL (opcional)</label>
-                    <input id="featured_image_url" name="featured_image_url" type="url" value="{{ appearance_record.featured_image_url or '' }}" placeholder="https://...">
+                    <label for="background_image_url">Fondo decorativo por URL</label>
+                    <input id="background_image_url" name="background_image_url" type="url" value="{{ settings_record.background_image_url or '' }}" placeholder="https://...">
                 </div>
             </div>
         </article>
@@ -130,6 +221,14 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="form-field">
+                    <label for="theme_name">Preset comercial</label>
+                    <select id="theme_name" name="theme_name">
+                        {% for preset in ['Barberia urbana', 'Barberia premium', 'Barberia clasica', 'Barberia moderna minimalista'] %}
+                            <option value="{{ preset }}" {% if appearance_record.theme_name == preset %}selected{% endif %}>{{ preset }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div class="form-row">
                     <div class="form-field">
                         <label for="primary_color">Color principal</label>
@@ -139,6 +238,20 @@
                         <label for="secondary_color">Color secundario</label>
                         <input id="secondary_color" name="secondary_color" type="color" value="{{ settings_record.secondary_color or '#7f1f1f' }}">
                     </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="accent_color">Color acento</label>
+                        <input id="accent_color" name="accent_color" type="color" value="{{ settings_record.accent_color or '#0ea5e9' }}">
+                    </div>
+                    <div class="form-field">
+                        <label for="button_color">Color de botones</label>
+                        <input id="button_color" name="button_color" type="color" value="{{ settings_record.button_color or settings_record.primary_color or '#d2b271' }}">
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label for="highlight_color">Color de textos destacados</label>
+                    <input id="highlight_color" name="highlight_color" type="color" value="{{ settings_record.highlight_color or '#f6c36d' }}">
                 </div>
             </div>
 
@@ -180,6 +293,14 @@
                 <label class="checkbox-field">
                     <input type="checkbox" name="show_map" {% if settings_record.show_map %}checked{% endif %}>
                     <span>Mostrar mapa y ubicacion</span>
+                </label>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_banner" {% if settings_record.show_banner %}checked{% endif %}>
+                    <span>Mostrar banner principal</span>
+                </label>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_how_to_get" {% if settings_record.show_how_to_get %}checked{% endif %}>
+                    <span>Mostrar seccion Como llegar</span>
                 </label>
             </div>
         </article>

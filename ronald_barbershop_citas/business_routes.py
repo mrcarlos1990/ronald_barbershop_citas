@@ -37,7 +37,13 @@ from .utils import (
 
 
 business_bp = Blueprint("business", __name__)
-THEME_OPTIONS = ("premium_dark", "urban_gold", "classic_barber", "luxury_modern")
+THEME_OPTIONS = ("premium_dark", "urban_gold", "street_modern", "classic_barber", "luxury_modern")
+APPEARANCE_PRESETS = ("Barberia urbana", "Barberia premium", "Barberia clasica", "Barberia moderna minimalista")
+BUTTON_STYLE_OPTIONS = ("pill_glow", "solid", "outline", "sharp")
+CARD_STYLE_OPTIONS = ("glass", "solid_dark", "editorial", "minimal")
+BORDER_STYLE_OPTIONS = ("straight", "soft", "rounded")
+HEADER_STYLE_OPTIONS = ("floating", "solid", "transparent")
+FOOTER_STYLE_OPTIONS = ("premium", "minimal", "editorial")
 
 
 def _tenant_id() -> int:
@@ -66,6 +72,7 @@ def settings():
     if request.method == "POST":
         business_name = (request.form.get("business_name") or "").strip()
         slogan = (request.form.get("slogan") or "").strip()
+        description = (request.form.get("description") or "").strip()
         phone = (request.form.get("phone") or "").strip()
         whatsapp = (request.form.get("whatsapp") or "").strip()
         email = (request.form.get("email") or "").strip().lower()
@@ -84,6 +91,9 @@ def settings():
         interval = request.form.get("intervalo_minutos", type=int) or 30
         primary_color = _color_or_default(request.form.get("primary_color"), "#d2b271")
         secondary_color = _color_or_default(request.form.get("secondary_color"), "#7f1f1f")
+        accent_color = _color_or_default(request.form.get("accent_color"), "#0ea5e9")
+        button_color = _color_or_default(request.form.get("button_color"), "#d2b271")
+        highlight_color = _color_or_default(request.form.get("highlight_color"), "#f6c36d")
         welcome_message = (request.form.get("mensaje_bienvenida") or "").strip()
         visual_theme = (request.form.get("visual_theme") or "urban_gold").strip()
         hero_badge_text = (request.form.get("hero_badge_text") or "").strip()
@@ -137,11 +147,23 @@ def settings():
                     category="branding",
                     current_path=settings_record.logo_path,
                 )
+                secondary_logo_path = save_image_upload(
+                    request.files.get("secondary_logo_file"),
+                    tenant_id=tenant_id,
+                    category="branding",
+                    current_path=settings_record.secondary_logo_path,
+                )
                 banner_path = save_image_upload(
                     request.files.get("banner_file"),
                     tenant_id=tenant_id,
                     category="branding",
                     current_path=settings_record.banner_path,
+                )
+                cover_path = save_image_upload(
+                    request.files.get("cover_file"),
+                    tenant_id=tenant_id,
+                    category="branding",
+                    current_path=settings_record.cover_path,
                 )
                 featured_image_path = save_image_upload(
                     request.files.get("featured_image_file"),
@@ -149,12 +171,25 @@ def settings():
                     category="branding",
                     current_path=settings_record.featured_image_path,
                 )
+                login_image_path = save_image_upload(
+                    request.files.get("login_image_file"),
+                    tenant_id=tenant_id,
+                    category="branding",
+                    current_path=settings_record.login_image_path,
+                )
+                background_image_path = save_image_upload(
+                    request.files.get("background_image_file"),
+                    tenant_id=tenant_id,
+                    category="branding",
+                    current_path=settings_record.background_image_path,
+                )
             except UploadValidationError as error:
                 flash(str(error), "danger")
                 return redirect(url_for("business.settings"))
 
             settings_record.business_name = business_name
             settings_record.slogan = slogan
+            settings_record.description = description or None
             settings_record.phone = normalize_phone(phone) if phone else None
             settings_record.whatsapp = normalize_phone(whatsapp)
             settings_record.email = email or None
@@ -166,13 +201,30 @@ def settings():
             settings_record.google_maps_url = google_maps_url or None
             if "logo_url" in request.form:
                 settings_record.logo_url = (request.form.get("logo_url") or "").strip() or None
+            if "secondary_logo_url" in request.form:
+                settings_record.secondary_logo_url = (request.form.get("secondary_logo_url") or "").strip() or None
             if "banner_url" in request.form:
                 settings_record.banner_url = (request.form.get("banner_url") or "").strip() or None
+            if "cover_url" in request.form:
+                settings_record.cover_url = (request.form.get("cover_url") or "").strip() or None
+            if "featured_image_url" in request.form:
+                settings_record.featured_image_url = (request.form.get("featured_image_url") or "").strip() or None
+            if "login_image_url" in request.form:
+                settings_record.login_image_url = (request.form.get("login_image_url") or "").strip() or None
+            if "background_image_url" in request.form:
+                settings_record.background_image_url = (request.form.get("background_image_url") or "").strip() or None
             settings_record.logo_path = logo_path
+            settings_record.secondary_logo_path = secondary_logo_path
             settings_record.banner_path = banner_path
+            settings_record.cover_path = cover_path
             settings_record.featured_image_path = featured_image_path
+            settings_record.login_image_path = login_image_path
+            settings_record.background_image_path = background_image_path
             settings_record.primary_color = primary_color
             settings_record.secondary_color = secondary_color
+            settings_record.accent_color = accent_color
+            settings_record.button_color = button_color
+            settings_record.highlight_color = highlight_color
             settings_record.visual_theme = visual_theme
             settings_record.default_language = default_language
             settings_record.currency_code = currency_code
@@ -201,11 +253,13 @@ def settings():
             settings_record.show_gallery_styles = request.form.get("show_gallery_styles") == "on"
             settings_record.show_promotions = request.form.get("show_promotions") == "on"
             settings_record.show_testimonials = request.form.get("show_testimonials") == "on"
+            settings_record.show_banner = request.form.get("show_banner") == "on"
+            settings_record.show_how_to_get = request.form.get("show_how_to_get") == "on"
             settings_record.show_language_selector = request.form.get("show_language_selector") == "on"
 
-            if "featured_image_url" in request.form:
-                appearance_record.featured_image_url = (request.form.get("featured_image_url") or "").strip() or None
+            appearance_record.featured_image_url = settings_record.featured_image_url
             appearance_record.visual_style = visual_theme
+            appearance_record.theme_name = request.form.get("theme_name") or appearance_record.theme_name
             appearance_record.show_services = request.form.get("show_services") == "on"
             appearance_record.show_barbers = request.form.get("show_barbers") == "on"
             appearance_record.show_gallery_styles = settings_record.show_gallery_styles
@@ -249,6 +303,112 @@ def settings():
         theme_options=THEME_OPTIONS,
         language_options=LANGUAGE_LABELS,
         currency_options=CURRENCY_PRESETS,
+    )
+
+
+@business_bp.route("/admin/appearance", methods=["GET", "POST"])
+@admin_required
+def appearance():
+    tenant_id = _tenant_id()
+    settings_record = get_business_settings(tenant_id=tenant_id)
+    appearance_record = get_appearance_settings(tenant_id=tenant_id)
+
+    if request.method == "POST":
+        visual_theme = (request.form.get("visual_theme") or "urban_gold").strip()
+        theme_name = (request.form.get("theme_name") or "Barberia urbana").strip()
+        button_style = (request.form.get("button_style") or "pill_glow").strip()
+        card_style = (request.form.get("card_style") or "glass").strip()
+        border_style = (request.form.get("border_style") or "rounded").strip()
+        header_style = (request.form.get("header_style") or "floating").strip()
+        footer_style = (request.form.get("footer_style") or "premium").strip()
+
+        errors = []
+        if visual_theme not in THEME_OPTIONS:
+            errors.append("Selecciona un tema visual valido.")
+        if theme_name not in APPEARANCE_PRESETS:
+            errors.append("Selecciona una identidad visual valida.")
+        if button_style not in BUTTON_STYLE_OPTIONS:
+            errors.append("Selecciona un estilo de botones valido.")
+        if card_style not in CARD_STYLE_OPTIONS:
+            errors.append("Selecciona un estilo de tarjetas valido.")
+        if border_style not in BORDER_STYLE_OPTIONS:
+            errors.append("Selecciona una forma de bordes valida.")
+        if header_style not in HEADER_STYLE_OPTIONS:
+            errors.append("Selecciona un estilo de header valido.")
+        if footer_style not in FOOTER_STYLE_OPTIONS:
+            errors.append("Selecciona un estilo de footer valido.")
+
+        if errors:
+            for error in errors:
+                flash(error, "danger")
+        else:
+            try:
+                featured_image_path = save_image_upload(
+                    request.files.get("featured_image_file"),
+                    tenant_id=tenant_id,
+                    category="branding",
+                    current_path=settings_record.featured_image_path,
+                )
+                background_image_path = save_image_upload(
+                    request.files.get("background_image_file"),
+                    tenant_id=tenant_id,
+                    category="branding",
+                    current_path=settings_record.background_image_path,
+                )
+            except UploadValidationError as error:
+                flash(str(error), "danger")
+                return redirect(url_for("business.appearance"))
+
+            settings_record.visual_theme = visual_theme
+            settings_record.primary_color = _color_or_default(request.form.get("primary_color"), settings_record.primary_color)
+            settings_record.secondary_color = _color_or_default(request.form.get("secondary_color"), settings_record.secondary_color)
+            settings_record.accent_color = _color_or_default(request.form.get("accent_color"), settings_record.accent_color)
+            settings_record.button_color = _color_or_default(request.form.get("button_color"), settings_record.button_color)
+            settings_record.highlight_color = _color_or_default(request.form.get("highlight_color"), settings_record.highlight_color)
+            settings_record.featured_image_path = featured_image_path
+            settings_record.background_image_path = background_image_path
+
+            if "featured_image_url" in request.form:
+                settings_record.featured_image_url = (request.form.get("featured_image_url") or "").strip() or None
+            if "background_image_url" in request.form:
+                settings_record.background_image_url = (request.form.get("background_image_url") or "").strip() or None
+
+            appearance_record.visual_style = visual_theme
+            appearance_record.theme_name = theme_name
+            appearance_record.button_style = button_style
+            appearance_record.card_style = card_style
+            appearance_record.border_style = border_style
+            appearance_record.header_style = header_style
+            appearance_record.footer_style = footer_style
+            appearance_record.enable_animations = request.form.get("enable_animations") == "on"
+            appearance_record.urban_mode = request.form.get("urban_mode") == "on"
+            appearance_record.dark_mode = request.form.get("dark_mode") == "on"
+            appearance_record.show_services = request.form.get("show_services") == "on"
+            appearance_record.show_barbers = request.form.get("show_barbers") == "on"
+            appearance_record.show_gallery_styles = request.form.get("show_gallery_styles") == "on"
+            appearance_record.show_promotions = request.form.get("show_promotions") == "on"
+            appearance_record.show_testimonials = request.form.get("show_testimonials") == "on"
+            appearance_record.featured_image_url = settings_record.featured_image_url
+
+            settings_record.show_gallery_styles = appearance_record.show_gallery_styles
+            settings_record.show_promotions = appearance_record.show_promotions
+            settings_record.show_testimonials = appearance_record.show_testimonials
+
+            db.session.commit()
+            flash("Apariencia actualizada correctamente.", "success")
+            return redirect(url_for("business.appearance"))
+
+    return render_template(
+        "admin/appearance.html",
+        settings_record=settings_record,
+        appearance_record=appearance_record,
+        theme_options=THEME_OPTIONS,
+        appearance_presets=APPEARANCE_PRESETS,
+        button_style_options=BUTTON_STYLE_OPTIONS,
+        card_style_options=CARD_STYLE_OPTIONS,
+        border_style_options=BORDER_STYLE_OPTIONS,
+        header_style_options=HEADER_STYLE_OPTIONS,
+        footer_style_options=FOOTER_STYLE_OPTIONS,
     )
 
 
@@ -438,6 +598,7 @@ def promotions():
         title = (request.form.get("title") or "").strip()
         description = (request.form.get("description") or "").strip()
         discount_percentage = request.form.get("discount_percentage", type=float)
+        special_price = request.form.get("special_price", type=float)
         start_date = parse_date(request.form.get("start_date"))
         end_date = parse_date(request.form.get("end_date"))
         active = request.form.get("active") == "on"
@@ -469,6 +630,7 @@ def promotions():
                 title=title,
                 description=description or None,
                 discount_percentage=discount_percentage,
+                special_price=special_price,
                 start_date=start_date,
                 end_date=end_date,
                 image_url=(request.form.get("image_url") or "").strip() or None,
@@ -486,6 +648,13 @@ def promotions():
         .all()
     )
     return render_template("admin/promotions.html", promotion_list=promotion_list, today=date.today())
+
+
+@business_bp.route("/admin/subscription")
+@admin_required
+def subscription():
+    tenant = get_tenant(tenant_id=_tenant_id())
+    return render_template("admin/subscription.html", tenant=tenant)
 
 
 @business_bp.route("/<tenant_slug>")

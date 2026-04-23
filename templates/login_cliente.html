@@ -9,6 +9,9 @@
             <span class="eyebrow">Cliente</span>
             <h1>Entra a tu panel privado</h1>
             <p>Inicia sesion con tu username o correo y gestiona tus citas desde el celular.</p>
+            {% if global_settings.login_image_src %}
+                <img class="auth-brand-image" src="{{ media_url(global_settings.login_image_src) }}" alt="Acceso clientes {{ global_settings.nombre_negocio }}">
+            {% endif %}
         </div>
 
         <form class="form-card auth-card" method="post">

@@ -14,7 +14,8 @@ Aplicacion web profesional para reservas de barberia construida con Flask, SQLit
 - Login seguro de administrador con rutas protegidas.
 - Dashboard admin con metricas, agenda del dia, proximas citas y clientes recientes.
 - Modulo premium de ajustes del negocio con branding, tema visual y ubicacion.
-- Upload real de logo, banner, imagen destacada, estilos y promociones en `static/uploads/`.
+- Upload real de logo, logo secundario, banner, portada, imagen destacada, login, fondos, estilos y promociones.
+- Soporte preparado para Cloudinary con fallback local en `static/uploads/`.
 - CRUD de servicios.
 - CRUD de barberos.
 - Gestion de citas, estados y reprogramaciones.
@@ -36,6 +37,7 @@ Aplicacion web profesional para reservas de barberia construida con Flask, SQLit
 - CSS3
 - JavaScript
 - Werkzeug Password Hashing
+- Cloudinary opcional para almacenamiento de imagenes en produccion
 
 ## Arquitectura de autenticacion
 
@@ -223,9 +225,14 @@ El administrador puede:
 - Gestionar barberos.
 - Gestionar clientes.
 - Bloquear horarios.
-- Ajustar configuracion general del negocio.
-- Subir logo, banner, imagen destacada, estilos de cortes y promociones.
-- Elegir tema visual `premium_dark`, `urban_gold`, `classic_barber` o `luxury_modern`.
+- Ajustes del negocio: `/admin/settings`.
+- Apariencia: `/admin/appearance`.
+- Promociones: `/admin/promotions`.
+- Estilos de cortes: `/admin/styles`.
+- Ubicacion: `/admin/location`.
+- Suscripcion: `/admin/subscription`.
+- Subir logo, logo secundario, banner, portada, imagen destacada, imagen de login, fondos, estilos de cortes y promociones.
+- Elegir tema visual `premium_dark`, `urban_gold`, `street_modern`, `classic_barber` o `luxury_modern`.
 
 ## WhatsApp configurable
 
@@ -238,7 +245,7 @@ Puedes cambiarlo desde cualquiera de estas dos vias:
 ### Opcion 1. Panel admin
 
 - Inicia sesion en `/admin/login`
-- Ve a `Configuracion`
+- Ve a `Ajustes del negocio`
 - Edita el campo `Telefono WhatsApp`
 
 ### Opcion 2. Semilla y configuracion inicial
@@ -253,7 +260,7 @@ Variable:
 
 ## Horario laboral configurable
 
-Se puede ajustar desde el panel admin en `Configuracion`:
+Se puede ajustar desde el panel admin en `Ajustes del negocio`:
 
 - Hora de apertura
 - Hora de cierre
@@ -330,6 +337,20 @@ El proyecto esta listo para correr localmente y tiene estructura preparada para 
 - configura un proxy como Nginx o Caddy
 - reemplaza credenciales por defecto
 - los uploads locales funcionan en `static/uploads/`, pero en Render conviene migrarlos luego a Cloudinary o S3 para persistencia durable
+
+## Imagenes y Cloudinary
+
+Por defecto el sistema guarda imagenes localmente en `static/uploads/`. Para usar Cloudinary en Render, instala dependencias y configura estas variables:
+
+```bash
+IMAGE_STORAGE_BACKEND=cloudinary
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+CLOUDINARY_API_KEY=tu_api_key
+CLOUDINARY_API_SECRET=tu_api_secret
+CLOUDINARY_FOLDER=ronald_barbershop
+```
+
+Si Cloudinary no esta configurado, el sistema usa automaticamente el almacenamiento local temporal.
 
 ## Firma
 

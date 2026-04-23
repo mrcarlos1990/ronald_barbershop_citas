@@ -57,6 +57,38 @@ def delete_uploaded_file(relative_path: str | None) -> None:
         resolved.unlink()
 
 
+def _cloudinary_is_configured() -> bool:
+    return all(
+        current_app.config.get(key)
+        for key in ("CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET")
+    )
+
+
+def _save_to_cloudinary(file_storage: FileStorage, *, tenant_id: int, category: str) -> str | None:
+    if current_app.config.get("IMAGE_STORAGE_BACKEND") != "cloudinary" or not _cloudinary_is_configured():
+        return None
+
+    try:
+        import cloudinary
+        import cloudinary.uploader
+    except ImportError:
+        return None
+
+    cloudinary.config(
+        cloud_name=current_app.config["CLOUDINARY_CLOUD_NAME"],
+        api_key=current_app.config["CLOUDINARY_API_KEY"],
+        api_secret=current_app.config["CLOUDINARY_API_SECRET"],
+        secure=True,
+    )
+    folder = f"{current_app.config.get('CLOUDINARY_FOLDER', 'ronald_barbershop')}/tenant_{tenant_id}/{category}"
+    try:
+        result = cloudinary.uploader.upload(file_storage, folder=folder, resource_type="image")
+    except Exception:
+        file_storage.stream.seek(0)
+        return None
+    return result.get("secure_url")
+
+
 def save_image_upload(
     file_storage: FileStorage | None,
     *,
@@ -70,6 +102,12 @@ def save_image_upload(
     if not allowed_image_file(file_storage.filename):
         allowed = ", ".join(sorted(current_app.config["ALLOWED_IMAGE_EXTENSIONS"]))
         raise UploadValidationError(f"Formato de imagen no permitido. Usa: {allowed}.")
+
+    cloudinary_url = _save_to_cloudinary(file_storage, tenant_id=tenant_id, category=category)
+    if cloudinary_url:
+        if current_path and current_path != cloudinary_url:
+            delete_uploaded_file(current_path)
+        return cloudinary_url
 
     original_name = secure_filename(file_storage.filename)
     extension = Path(original_name).suffix.lower()

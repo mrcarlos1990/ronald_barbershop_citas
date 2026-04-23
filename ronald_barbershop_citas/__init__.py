@@ -88,12 +88,38 @@ def ensure_schema() -> None:
 
     if "business_settings" in table_names:
         business_columns = {column["name"] for column in inspector.get_columns("business_settings")}
+        if "description" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN description TEXT")
+        if "secondary_logo_url" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN secondary_logo_url VARCHAR(255)")
+        if "cover_url" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN cover_url VARCHAR(255)")
+        if "featured_image_url" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN featured_image_url VARCHAR(255)")
+        if "login_image_url" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN login_image_url VARCHAR(255)")
+        if "background_image_url" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN background_image_url VARCHAR(255)")
         if "logo_path" not in business_columns:
             statements.append("ALTER TABLE business_settings ADD COLUMN logo_path VARCHAR(255)")
+        if "secondary_logo_path" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN secondary_logo_path VARCHAR(255)")
         if "banner_path" not in business_columns:
             statements.append("ALTER TABLE business_settings ADD COLUMN banner_path VARCHAR(255)")
+        if "cover_path" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN cover_path VARCHAR(255)")
         if "featured_image_path" not in business_columns:
             statements.append("ALTER TABLE business_settings ADD COLUMN featured_image_path VARCHAR(255)")
+        if "login_image_path" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN login_image_path VARCHAR(255)")
+        if "background_image_path" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN background_image_path VARCHAR(255)")
+        if "accent_color" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN accent_color VARCHAR(20) DEFAULT '#0ea5e9'")
+        if "button_color" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN button_color VARCHAR(20) DEFAULT '#d2b271'")
+        if "highlight_color" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN highlight_color VARCHAR(20) DEFAULT '#f6c36d'")
         if "visual_theme" not in business_columns:
             statements.append("ALTER TABLE business_settings ADD COLUMN visual_theme VARCHAR(80) DEFAULT 'urban_gold'")
         if "default_language" not in business_columns:
@@ -134,6 +160,31 @@ def ensure_schema() -> None:
             statements.append("ALTER TABLE business_settings ADD COLUMN final_cta_description TEXT")
         if "show_language_selector" not in business_columns:
             statements.append("ALTER TABLE business_settings ADD COLUMN show_language_selector BOOLEAN DEFAULT 1")
+        if "show_banner" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN show_banner BOOLEAN DEFAULT 1")
+        if "show_how_to_get" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN show_how_to_get BOOLEAN DEFAULT 1")
+
+    if "appearance_settings" in table_names:
+        appearance_columns = {column["name"] for column in inspector.get_columns("appearance_settings")}
+        if "theme_name" not in appearance_columns:
+            statements.append("ALTER TABLE appearance_settings ADD COLUMN theme_name VARCHAR(80) DEFAULT 'Barberia urbana'")
+        if "button_style" not in appearance_columns:
+            statements.append("ALTER TABLE appearance_settings ADD COLUMN button_style VARCHAR(80) DEFAULT 'pill_glow'")
+        if "card_style" not in appearance_columns:
+            statements.append("ALTER TABLE appearance_settings ADD COLUMN card_style VARCHAR(80) DEFAULT 'glass'")
+        if "border_style" not in appearance_columns:
+            statements.append("ALTER TABLE appearance_settings ADD COLUMN border_style VARCHAR(80) DEFAULT 'rounded'")
+        if "header_style" not in appearance_columns:
+            statements.append("ALTER TABLE appearance_settings ADD COLUMN header_style VARCHAR(80) DEFAULT 'floating'")
+        if "footer_style" not in appearance_columns:
+            statements.append("ALTER TABLE appearance_settings ADD COLUMN footer_style VARCHAR(80) DEFAULT 'premium'")
+        if "enable_animations" not in appearance_columns:
+            statements.append("ALTER TABLE appearance_settings ADD COLUMN enable_animations BOOLEAN DEFAULT 1")
+        if "urban_mode" not in appearance_columns:
+            statements.append("ALTER TABLE appearance_settings ADD COLUMN urban_mode BOOLEAN DEFAULT 1")
+        if "dark_mode" not in appearance_columns:
+            statements.append("ALTER TABLE appearance_settings ADD COLUMN dark_mode BOOLEAN DEFAULT 1")
 
     if "haircut_styles" in table_names:
         styles_columns = {column["name"] for column in inspector.get_columns("haircut_styles")}
@@ -144,6 +195,8 @@ def ensure_schema() -> None:
         promotion_columns = {column["name"] for column in inspector.get_columns("promotions")}
         if "image_path" not in promotion_columns:
             statements.append("ALTER TABLE promotions ADD COLUMN image_path VARCHAR(255)")
+        if "special_price" not in promotion_columns:
+            statements.append("ALTER TABLE promotions ADD COLUMN special_price FLOAT")
 
     for statement in statements:
         db.session.execute(text(statement))
