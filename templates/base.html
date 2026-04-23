@@ -21,6 +21,7 @@
             <span class="loader-bar"></span>
             <span class="loader-bar"></span>
             <strong>{{ global_settings.nombre_negocio }}</strong>
+            <small class="loader-credit">Hecho por la Empresa AFCyber SOLUTIONS</small>
         </div>
     </div>
     <div class="site-bg"></div>
@@ -40,7 +41,7 @@
             </a>
             <nav class="top-nav">
                 <a href="{{ url_for('main.landing') }}">{{ t('nav.home') }}</a>
-                <a href="{{ url_for('main.booking_form') }}">{{ t('nav.booking') }}</a>
+                <a class="nav-booking-cta" href="{{ url_for('main.booking_form') }}">{{ t('nav.booking') }}</a>
                 {% if current_tenant %}
                     <a href="{{ url_for('business.public_business', tenant_slug=current_tenant.slug) }}">{{ t('nav.landing') }}</a>
                 {% endif %}
@@ -88,7 +89,10 @@
             <div>
                 <strong>{{ global_settings.nombre_negocio }}</strong>
                 <p>{{ global_settings.eslogan }}</p>
-                <p class="developer-signature">Desarrollado por Ing. Amauri Feliz</p>
+                <div class="developer-signature">
+                    <span>Hecho por la Empresa <strong>AFCyber SOLUTIONS</strong></span>
+                    <span>Desarrollado por: <strong>Ing. Amauri Feliz</strong></span>
+                </div>
             </div>
             <div class="footer-meta">
                 <span>{{ global_settings.direccion }}</span>
@@ -97,6 +101,7 @@
                     <span>{{ current_tenant.domain_url }}</span>
                 {% endif %}
                 <span>&copy; {{ current_year }} {{ global_settings.nombre_negocio }}</span>
+                <span>Hecho por AFCyber SOLUTIONS</span>
             </div>
         </div>
     </footer>

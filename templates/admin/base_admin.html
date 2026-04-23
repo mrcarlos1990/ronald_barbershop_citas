@@ -20,6 +20,7 @@
             <span class="loader-bar"></span>
             <span class="loader-bar"></span>
             <strong>{{ global_settings.nombre_negocio }}</strong>
+            <small class="loader-credit">Hecho por la Empresa AFCyber SOLUTIONS</small>
         </div>
     </div>
 
@@ -61,7 +62,9 @@
                 {% endif %}
                 <a class="btn btn-danger btn-full" href="{{ url_for('admin.logout') }}">Cerrar sesion</a>
                 <div class="sidebar-signature">
-                    <span>Desarrollado Por</span>
+                    <span>Hecho por la Empresa</span>
+                    <strong>AFCyber SOLUTIONS</strong>
+                    <span>Desarrollado por:</span>
                     <strong>Ing. Amauri Feliz</strong>
                 </div>
             </div>
@@ -80,6 +83,7 @@
                 <div class="admin-userbox">
                     <strong>{{ current_admin.nombre_completo if current_admin else "Administrador" }}</strong>
                     <span>{{ current_admin.username if current_admin else "" }}</span>
+                    <span class="admin-credit-pill">AFCyber SOLUTIONS · Ing. Amauri Feliz</span>
                     {% if current_tenant %}
                         <span class="tenant-badge">{{ current_tenant.slug }}</span>
                     {% endif %}

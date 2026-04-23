@@ -333,6 +333,10 @@ El proyecto esta listo para correr localmente y tiene estructura preparada para 
 
 ## Firma
 
-Desarrollado por:
+Hecho por la Empresa:
+
+- `AFCyber SOLUTIONS`
+
+Firma:
 
 - `Ing. Amauri Feliz`

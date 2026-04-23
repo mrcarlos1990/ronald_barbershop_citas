@@ -3,7 +3,7 @@
 {% block title %}{{ settings.business_name }} | Experiencia premium de barberia{% endblock %}
 
 {% block content %}
-<section class="hero-section public-hero-shell" {% if settings.banner_src %}style="background-image: linear-gradient(120deg, rgba(5, 5, 7, 0.9), rgba(5, 5, 7, 0.62)), url('{{ media_url(settings.banner_src) }}');"{% endif %}>
+<section class="hero-section public-hero-shell premium-landing-hero" {% if settings.banner_src %}style="background-image: linear-gradient(120deg, rgba(5, 5, 7, 0.9), rgba(5, 5, 7, 0.62)), url('{{ media_url(settings.banner_src) }}');"{% endif %}>
     <div class="container hero-grid public-hero-grid">
         <div class="hero-copy hero-copy-rich" data-reveal>
             <div class="hero-badge-row">
@@ -32,7 +32,8 @@
                     <a class="btn btn-primary" href="{{ url_for('main.booking_form') }}">{{ t('landing.reserve_now') }}</a>
                     <a class="btn btn-secondary" href="{{ url_for('client.dashboard') }}">{{ t('landing.my_panel') }}</a>
                 {% else %}
-                    <a class="btn btn-primary" href="{{ url_for('client.register') }}">{{ t('nav.create_account') }}</a>
+                    <a class="btn btn-primary" href="{{ booking_url }}">{{ t('landing.reserve_now') }}</a>
+                    <a class="btn btn-secondary" href="{{ url_for('client.register') }}">{{ t('nav.create_account') }}</a>
                     <a class="btn btn-secondary" href="{{ url_for('client.login') }}">{{ t('nav.login') }}</a>
                 {% endif %}
             </div>
@@ -43,6 +44,12 @@
                 {% if location and location.google_maps_url %}
                     <a class="btn btn-secondary" href="{{ location.google_maps_url }}" target="_blank" rel="noreferrer">{{ t('landing.how_to_get') }}</a>
                 {% endif %}
+            </div>
+
+            <div class="hero-trust-row">
+                <span>Reserva en menos de 1 minuto</span>
+                <span>Confirmacion real por WhatsApp</span>
+                <span>Agenda y horarios en vivo</span>
             </div>
 
             <div class="hero-stats premium-stats">
@@ -66,10 +73,16 @@
                 {% if settings.featured_image_src or appearance.featured_image_url %}
                     <img class="hero-feature-image" src="{{ media_url(settings.featured_image_src or appearance.featured_image_url) }}" alt="Imagen destacada de {{ settings.business_name }}">
                 {% else %}
-                    <div class="hero-feature-placeholder">
-                        <span class="eyebrow">Urban premium</span>
-                        <strong>Barber booking SaaS</strong>
-                        <p>Una presencia comercial fuerte para barberias que quieren crecer.</p>
+                    <div class="hero-feature-placeholder barber-display-card">
+                        <div class="barber-pole-visual"></div>
+                        <span class="eyebrow">Ronald Experience</span>
+                        <strong>Precision urbana. Presencia premium.</strong>
+                        <p>Una experiencia digital pensada para convertir visitas de WhatsApp en reservas reales.</p>
+                        <div class="barber-visual-meta">
+                            <span>Fades</span>
+                            <span>Barba</span>
+                            <span>Disenos</span>
+                        </div>
                     </div>
                 {% endif %}
             </div>
@@ -90,13 +103,18 @@
                     </div>
                 </div>
             </div>
+            <div class="conversion-card">
+                <span class="panel-label">Flujo premium</span>
+                <strong>WhatsApp → reserva → silla</strong>
+                <p>El cliente entra desde el enlace, selecciona horario y llega con su cita lista.</p>
+            </div>
         </div>
     </div>
 </section>
 
 <section class="section-block">
     <div class="container">
-        <div class="feature-banner" data-reveal>
+        <div class="feature-banner premium-feature-banner" data-reveal>
             <div>
                 <span class="eyebrow">Por que destaca</span>
                 <h2>{{ t('landing.feature_title') }}</h2>
@@ -106,6 +124,23 @@
                 <span>{{ t('landing.feature_two') }}</span>
                 <span>{{ t('landing.feature_three') }}</span>
             </div>
+        </div>
+        <div class="premium-proof-grid">
+            <article class="proof-card" data-reveal>
+                <span>01</span>
+                <strong>Sin friccion</strong>
+                <p>El CTA principal lleva directo a reservar y el sistema protege disponibilidad real.</p>
+            </article>
+            <article class="proof-card" data-reveal>
+                <span>02</span>
+                <strong>Marca visible</strong>
+                <p>Servicios, estilos, ubicacion y WhatsApp aparecen antes de que el cliente dude.</p>
+            </article>
+            <article class="proof-card" data-reveal>
+                <span>03</span>
+                <strong>Look comercial</strong>
+                <p>La pagina se siente como una barberia real, no como un formulario de reservas.</p>
+            </article>
         </div>
     </div>
 </section>
@@ -127,6 +162,7 @@
                         <span class="service-token">{{ service.nombre[:2]|upper }}</span>
                         <strong>{{ service.precio|currency }}</strong>
                     </div>
+                    <span class="service-category-pill">{{ service.categoria or 'Barber service' }}</span>
                     <h3>{{ service.nombre }}</h3>
                     <p>{{ service.descripcion or 'Servicio premium pensado para clientes que valoran precision y presencia.' }}</p>
                     <div class="service-meta">
@@ -153,11 +189,14 @@
         <div class="style-gallery-grid public-style-grid">
             {% for style in styles %}
                 <article class="style-showcase-card immersive-style-card" data-reveal>
-                    <div class="style-showcase-media" {% if style.image_src %}style="background-image: linear-gradient(180deg, rgba(7, 7, 7, 0.06), rgba(7, 7, 7, 0.92)), url('{{ media_url(style.image_src) }}');"{% endif %}>
+                    <div class="style-showcase-media {% if not style.image_src %}style-generated-media{% endif %}" {% if style.image_src %}style="background-image: linear-gradient(180deg, rgba(7, 7, 7, 0.06), rgba(7, 7, 7, 0.92)), url('{{ media_url(style.image_src) }}');"{% endif %}>
                         {% if style.trending %}
                             <span class="trend-badge">En tendencia</span>
                         {% endif %}
-                        <strong>{{ style.name[:1] }}</strong>
+                        <div class="style-initial-lockup">
+                            <strong>{{ style.name[:1] }}</strong>
+                            <span>{{ style.name }}</span>
+                        </div>
                     </div>
                     <div class="style-showcase-body">
                         <h3>{{ style.name }}</h3>
@@ -191,6 +230,11 @@
                 <article class="promo-admin-card public-promo-card promo-card-premium" data-reveal>
                     {% if promotion.image_src %}
                         <div class="promo-banner" style="background-image: linear-gradient(180deg, rgba(7, 7, 7, 0.1), rgba(7, 7, 7, 0.88)), url('{{ media_url(promotion.image_src) }}');"></div>
+                    {% else %}
+                        <div class="promo-banner promo-generated-banner">
+                            <span>Oferta Ronald</span>
+                            <strong>{{ promotion.discount_percentage }}%</strong>
+                        </div>
                     {% endif %}
                     <div class="promo-admin-top">
                         <span class="status-badge status-confirmada">Activa</span>

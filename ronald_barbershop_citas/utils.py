@@ -323,6 +323,7 @@ def _create_default_business_settings(tenant: Tenant) -> BusinessSettings:
         province_state="Distrito Nacional",
         country="Republica Dominicana",
         google_maps_url="https://maps.google.com/?q=Ronald+BarberShop",
+        logo_path="img/ronald-logo.png",
         primary_color="#d2b271",
         secondary_color="#7f1f1f",
         visual_theme="urban_gold",
@@ -330,6 +331,39 @@ def _create_default_business_settings(tenant: Tenant) -> BusinessSettings:
         currency_code="USD",
         currency_symbol="US$",
         working_days="Lunes a Sabado",
+        hero_badge_text="Ronald premium experience",
+        hero_title="Ronald BarberShop",
+        hero_description=(
+            "Reserva online, confirma por WhatsApp y llega directo a una experiencia "
+            "de barberia urbana, precisa y profesional."
+        ),
+        services_title="Servicios premium con precios claros",
+        services_description=(
+            "Cortes, fades, barba y detalles disenados para que cada cliente reserve "
+            "con confianza."
+        ),
+        styles_title="Estilos de cortes que inspiran tu proximo look",
+        styles_description=(
+            "Explora tendencias, precios sugeridos y looks disponibles antes de elegir "
+            "tu cita."
+        ),
+        promotions_title="Promociones activas para reservar hoy",
+        promotions_description=(
+            "Ofertas visibles y faciles de compartir para impulsar visitas desde WhatsApp."
+        ),
+        location_title="Encuentranos facilmente",
+        location_description=(
+            "Ubicacion, referencia y ruta lista para que llegues sin perder tiempo."
+        ),
+        testimonials_title="Clientes que recomiendan la experiencia",
+        testimonials_description=(
+            "Prueba social para que nuevos visitantes reserven con confianza."
+        ),
+        final_cta_title="Listo para reservar en",
+        final_cta_description=(
+            "Elige servicio, fecha y hora. Nosotros nos encargamos de que tu experiencia "
+            "empiece con presencia y puntualidad."
+        ),
         show_language_selector=True,
     )
     db.session.add(settings)

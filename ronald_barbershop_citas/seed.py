@@ -276,6 +276,38 @@ DEFAULT_SOCIAL_LINKS = [
     ("TikTok", "TikTok", "https://tiktok.com/@ronaldbarbershop"),
 ]
 
+DEFAULT_PUBLIC_TEXTS = {
+    "hero_badge_text": "Ronald premium experience",
+    "hero_title": "Ronald BarberShop",
+    "hero_description": (
+        "Reserva online, confirma por WhatsApp y llega directo a una experiencia "
+        "de barberia urbana, precisa y profesional."
+    ),
+    "services_title": "Servicios premium con precios claros",
+    "services_description": (
+        "Cortes, fades, barba y detalles disenados para que cada cliente reserve "
+        "con confianza."
+    ),
+    "styles_title": "Estilos de cortes que inspiran tu proximo look",
+    "styles_description": (
+        "Explora tendencias, precios sugeridos y looks disponibles antes de elegir "
+        "tu cita."
+    ),
+    "promotions_title": "Promociones activas para reservar hoy",
+    "promotions_description": (
+        "Ofertas visibles y faciles de compartir para impulsar visitas desde WhatsApp."
+    ),
+    "location_title": "Encuentranos facilmente",
+    "location_description": "Ubicacion, referencia y ruta lista para que llegues sin perder tiempo.",
+    "testimonials_title": "Clientes que recomiendan la experiencia",
+    "testimonials_description": "Prueba social para que nuevos visitantes reserven con confianza.",
+    "final_cta_title": "Listo para reservar en",
+    "final_cta_description": (
+        "Elige servicio, fecha y hora. Nosotros nos encargamos de que tu experiencia "
+        "empiece con presencia y puntualidad."
+    ),
+}
+
 
 def _get_or_create_tenant() -> Tenant:
     tenant = Tenant.query.filter_by(slug="ronald-barbershop").first()
@@ -350,6 +382,7 @@ def seed_database() -> None:
             country="Republica Dominicana",
             google_maps_url="https://maps.google.com/?q=Ronald+BarberShop+Santo+Domingo",
             logo_url="",
+            logo_path="img/ronald-logo.png",
             banner_url="",
             primary_color="#d2b271",
             secondary_color="#7f1f1f",
@@ -363,10 +396,13 @@ def seed_database() -> None:
             show_gallery_styles=True,
             show_promotions=True,
             show_testimonials=True,
+            **DEFAULT_PUBLIC_TEXTS,
         )
         db.session.add(settings)
     else:
         settings.business_name = settings.business_name or "Ronald BarberShop"
+        if not settings.logo_path and not settings.logo_url:
+            settings.logo_path = "img/ronald-logo.png"
         settings.whatsapp = settings.whatsapp or DEFAULT_WHATSAPP
         settings.phone = settings.phone or DEFAULT_WHATSAPP
         settings.google_maps_url = settings.google_maps_url or "https://maps.google.com/?q=Ronald+BarberShop+Santo+Domingo"
@@ -381,6 +417,9 @@ def seed_database() -> None:
         settings.show_gallery_styles = True if settings.show_gallery_styles is None else settings.show_gallery_styles
         settings.show_promotions = True if settings.show_promotions is None else settings.show_promotions
         settings.show_testimonials = True if settings.show_testimonials is None else settings.show_testimonials
+        for field, value in DEFAULT_PUBLIC_TEXTS.items():
+            if not getattr(settings, field, None):
+                setattr(settings, field, value)
 
     location = LocationSettings.query.filter_by(tenant_id=tenant.id).first()
     if location is None:
