@@ -353,7 +353,12 @@ def seed_database() -> None:
             banner_url="",
             primary_color="#d2b271",
             secondary_color="#7f1f1f",
+            visual_theme="urban_gold",
+            default_language="es",
+            currency_code="USD",
+            currency_symbol="US$",
             working_days="Lunes a Sabado",
+            show_language_selector=True,
             show_map=True,
             show_gallery_styles=True,
             show_promotions=True,
@@ -367,6 +372,11 @@ def seed_database() -> None:
         settings.google_maps_url = settings.google_maps_url or "https://maps.google.com/?q=Ronald+BarberShop+Santo+Domingo"
         settings.primary_color = settings.primary_color or "#d2b271"
         settings.secondary_color = settings.secondary_color or "#7f1f1f"
+        settings.visual_theme = settings.visual_theme or "urban_gold"
+        settings.default_language = settings.default_language or "es"
+        settings.currency_code = settings.currency_code or "USD"
+        settings.currency_symbol = settings.currency_symbol or "US$"
+        settings.show_language_selector = True if settings.show_language_selector is None else settings.show_language_selector
         settings.show_map = True if settings.show_map is None else settings.show_map
         settings.show_gallery_styles = True if settings.show_gallery_styles is None else settings.show_gallery_styles
         settings.show_promotions = True if settings.show_promotions is None else settings.show_promotions
@@ -390,7 +400,7 @@ def seed_database() -> None:
         appearance = AppearanceSettings(
             tenant_id=tenant.id,
             featured_image_url="",
-            visual_style="premium-barber",
+            visual_style="urban_gold",
             show_services=True,
             show_barbers=True,
             show_gallery_styles=True,
@@ -398,6 +408,8 @@ def seed_database() -> None:
             show_testimonials=True,
         )
         db.session.add(appearance)
+    else:
+        appearance.visual_style = appearance.visual_style or "urban_gold"
 
     admin = AdminUser.query.filter_by(username=DEFAULT_ADMIN_USERNAME).first()
     if admin is None:

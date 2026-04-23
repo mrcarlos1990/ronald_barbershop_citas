@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ current_language }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,33 +14,56 @@
         }
     </style>
 </head>
-<body class="{% block body_class %}public-body{% endblock %}">
+<body class="{% block body_class %}public-body{% endblock %} theme-{{ global_settings.visual_theme or 'urban_gold' }}">
+    <div class="page-loader" id="page-loader" aria-hidden="true">
+        <div class="loader-mark">
+            <span class="loader-bar"></span>
+            <span class="loader-bar"></span>
+            <span class="loader-bar"></span>
+            <strong>{{ global_settings.nombre_negocio }}</strong>
+        </div>
+    </div>
     <div class="site-bg"></div>
 
     <header class="site-header">
         <div class="container nav-shell">
-            <a class="brand-mark" href="{{ url_for('main.landing') }}">
-                <span class="brand-kicker">Premium Barber Booking</span>
-                <strong>{{ global_settings.nombre_negocio }}</strong>
+            <a class="brand-mark" href="{% if current_tenant %}{{ url_for('business.public_business', tenant_slug=current_tenant.slug) }}{% else %}{{ url_for('main.landing') }}{% endif %}">
+                {% if global_settings.logo_src %}
+                    <img class="brand-mark-logo" src="{{ media_url(global_settings.logo_src) }}" alt="{{ global_settings.nombre_negocio }}">
+                {% else %}
+                    <span class="brand-mark-fallback">{{ global_settings.nombre_negocio[:1] }}</span>
+                {% endif %}
+                <span class="brand-mark-copy">
+                    <span class="brand-kicker">Premium Barber Booking</span>
+                    <strong>{{ global_settings.nombre_negocio }}</strong>
+                </span>
             </a>
             <nav class="top-nav">
-                <a href="{{ url_for('main.landing') }}">Inicio</a>
-                <a href="{{ url_for('main.booking_form') }}">Agendar</a>
+                <a href="{{ url_for('main.landing') }}">{{ t('nav.home') }}</a>
+                <a href="{{ url_for('main.booking_form') }}">{{ t('nav.booking') }}</a>
                 {% if current_tenant %}
-                    <a href="{{ url_for('business.public_business', tenant_slug=current_tenant.slug) }}">Landing</a>
+                    <a href="{{ url_for('business.public_business', tenant_slug=current_tenant.slug) }}">{{ t('nav.landing') }}</a>
                 {% endif %}
                 {% if current_client %}
-                    <a href="{{ url_for('client.dashboard') }}">Mi panel</a>
-                    <a href="{{ url_for('client.appointments') }}">Mis citas</a>
-                    <a href="{{ url_for('client.logout') }}">Salir cliente</a>
+                    <a href="{{ url_for('client.dashboard') }}">{{ t('nav.client_panel') }}</a>
+                    <a href="{{ url_for('client.appointments') }}">{{ t('nav.client_appointments') }}</a>
+                    <a class="nav-pill nav-pill-danger" href="{{ url_for('client.logout') }}">{{ t('nav.logout_client') }}</a>
                 {% else %}
-                    <a href="{{ url_for('client.register') }}">Crear cuenta</a>
-                    <a href="{{ url_for('client.login') }}">Iniciar sesion</a>
+                    <a href="{{ url_for('client.register') }}">{{ t('nav.create_account') }}</a>
+                    <a href="{{ url_for('client.login') }}">{{ t('nav.login') }}</a>
                 {% endif %}
                 {% if current_admin %}
-                    <a href="{{ url_for('admin.dashboard') }}">Panel admin</a>
+                    <a href="{{ url_for('admin.dashboard') }}">{{ t('nav.admin_panel') }}</a>
+                    <a class="nav-pill nav-pill-danger" href="{{ url_for('admin.logout') }}">{{ t('nav.logout_admin') }}</a>
                 {% else %}
-                    <a href="{{ url_for('admin.login') }}">Admin</a>
+                    <a href="{{ url_for('admin.login') }}">{{ t('nav.admin') }}</a>
+                {% endif %}
+                {% if global_settings.show_language_selector %}
+                    <div class="language-switch" aria-label="{{ t('nav.language') }}">
+                        {% for code, label in available_languages.items() %}
+                            <a class="language-pill {% if current_language == code %}is-active{% endif %}" href="{{ url_for('main.set_language', language_code=code, next=request.path) }}">{{ label }}</a>
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </nav>
         </div>

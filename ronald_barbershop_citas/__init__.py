@@ -1,14 +1,16 @@
 from datetime import datetime
 from pathlib import Path
 
-from flask import Flask, render_template, request, session
+from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, current_user
 from sqlalchemy import inspect, text
 
 from .config import Config
 from .models import AdminUser, Client, db
+from .uploads import build_media_url
 from .seed import seed_database
 from .utils import (
+    LANGUAGE_LABELS,
     STATUS_LABELS,
     build_whatsapp_target,
     format_currency,
@@ -19,9 +21,11 @@ from .utils import (
     get_appearance_settings,
     get_business_settings,
     get_current_tenant_id,
+    get_language_code,
     get_location_settings,
     get_social_links,
     get_tenant,
+    translate,
 )
 
 
@@ -82,6 +86,65 @@ def ensure_schema() -> None:
         if "tenant_id" not in blocked_columns:
             statements.append("ALTER TABLE horarios_bloqueados ADD COLUMN tenant_id INTEGER")
 
+    if "business_settings" in table_names:
+        business_columns = {column["name"] for column in inspector.get_columns("business_settings")}
+        if "logo_path" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN logo_path VARCHAR(255)")
+        if "banner_path" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN banner_path VARCHAR(255)")
+        if "featured_image_path" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN featured_image_path VARCHAR(255)")
+        if "visual_theme" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN visual_theme VARCHAR(80) DEFAULT 'urban_gold'")
+        if "default_language" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN default_language VARCHAR(10) DEFAULT 'es'")
+        if "currency_code" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN currency_code VARCHAR(10) DEFAULT 'USD'")
+        if "currency_symbol" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN currency_symbol VARCHAR(10) DEFAULT '$'")
+        if "hero_badge_text" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN hero_badge_text VARCHAR(180)")
+        if "hero_title" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN hero_title VARCHAR(220)")
+        if "hero_description" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN hero_description TEXT")
+        if "services_title" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN services_title VARCHAR(220)")
+        if "services_description" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN services_description TEXT")
+        if "styles_title" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN styles_title VARCHAR(220)")
+        if "styles_description" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN styles_description TEXT")
+        if "promotions_title" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN promotions_title VARCHAR(220)")
+        if "promotions_description" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN promotions_description TEXT")
+        if "location_title" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN location_title VARCHAR(220)")
+        if "location_description" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN location_description TEXT")
+        if "testimonials_title" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN testimonials_title VARCHAR(220)")
+        if "testimonials_description" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN testimonials_description TEXT")
+        if "final_cta_title" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN final_cta_title VARCHAR(220)")
+        if "final_cta_description" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN final_cta_description TEXT")
+        if "show_language_selector" not in business_columns:
+            statements.append("ALTER TABLE business_settings ADD COLUMN show_language_selector BOOLEAN DEFAULT 1")
+
+    if "haircut_styles" in table_names:
+        styles_columns = {column["name"] for column in inspector.get_columns("haircut_styles")}
+        if "image_path" not in styles_columns:
+            statements.append("ALTER TABLE haircut_styles ADD COLUMN image_path VARCHAR(255)")
+
+    if "promotions" in table_names:
+        promotion_columns = {column["name"] for column in inspector.get_columns("promotions")}
+        if "image_path" not in promotion_columns:
+            statements.append("ALTER TABLE promotions ADD COLUMN image_path VARCHAR(255)")
+
     for statement in statements:
         db.session.execute(text(statement))
     if statements:
@@ -98,6 +161,7 @@ def create_app(config_class=Config) -> Flask:
     app.config.from_object(config_class)
 
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+    Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -116,6 +180,7 @@ def create_app(config_class=Config) -> Flask:
     app.jinja_env.filters["display_time"] = format_time
     app.jinja_env.filters["display_date"] = format_date
     app.jinja_env.filters["display_datetime"] = format_datetime
+    app.jinja_env.globals["media_url"] = build_media_url
 
     @login_manager.user_loader
     def load_client_user(user_id: str):
@@ -149,6 +214,9 @@ def create_app(config_class=Config) -> Flask:
             "status_labels": STATUS_LABELS,
             "whatsapp_target": build_whatsapp_target(settings.whatsapp),
             "current_year": datetime.now().year,
+            "current_language": get_language_code(tenant_id=tenant_id),
+            "available_languages": LANGUAGE_LABELS,
+            "t": translate,
         }
 
     @app.errorhandler(404)
@@ -159,6 +227,11 @@ def create_app(config_class=Config) -> Flask:
     def internal_error(error):
         db.session.rollback()
         return render_template("500.html"), 500
+
+    @app.errorhandler(413)
+    def file_too_large(error):
+        flash("La imagen supera el tamano permitido. Usa archivos de hasta 5 MB.", "danger")
+        return redirect(request.referrer or url_for("business.settings"))
 
     with app.app_context():
         db.create_all()

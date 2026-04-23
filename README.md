@@ -13,11 +13,14 @@ Aplicacion web profesional para reservas de barberia construida con Flask, SQLit
 - Panel privado de cliente para ver, cancelar y reprogramar citas.
 - Login seguro de administrador con rutas protegidas.
 - Dashboard admin con metricas, agenda del dia, proximas citas y clientes recientes.
+- Modulo premium de ajustes del negocio con branding, tema visual y ubicacion.
+- Upload real de logo, banner, imagen destacada, estilos y promociones en `static/uploads/`.
 - CRUD de servicios.
 - CRUD de barberos.
 - Gestion de citas, estados y reprogramaciones.
 - Gestion de clientes con activacion o desactivacion.
 - Bloqueo manual de horarios.
+- Landing publica premium por barberia con galeria de estilos, promociones y CTA de WhatsApp.
 - Datos semilla listos para pruebas.
 
 ## Tecnologias usadas
@@ -221,6 +224,8 @@ El administrador puede:
 - Gestionar clientes.
 - Bloquear horarios.
 - Ajustar configuracion general del negocio.
+- Subir logo, banner, imagen destacada, estilos de cortes y promociones.
+- Elegir tema visual `premium_dark`, `urban_gold`, `classic_barber` o `luxury_modern`.
 
 ## WhatsApp configurable
 
@@ -283,7 +288,13 @@ Tablas principales:
 - `barberos`
 - `citas`
 - `horarios_bloqueados`
-- `configuracion_negocio`
+- `business_settings`
+- `appearance_settings`
+- `location_settings`
+- `haircut_styles`
+- `promotions`
+- `social_links`
+- `testimonials`
 
 Archivo SQLite actual:
 
@@ -318,6 +329,7 @@ El proyecto esta listo para correr localmente y tiene estructura preparada para 
 - usa Gunicorn o un servidor WSGI equivalente
 - configura un proxy como Nginx o Caddy
 - reemplaza credenciales por defecto
+- los uploads locales funcionan en `static/uploads/`, pero en Render conviene migrarlos luego a Cloudinary o S3 para persistencia durable
 
 ## Firma
 

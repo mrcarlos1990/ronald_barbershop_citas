@@ -4,12 +4,29 @@
 {% block admin_heading %}Estilos de cortes{% endblock %}
 
 {% block admin_content %}
+<section class="dashboard-hero panel-card">
+    <div class="dashboard-hero-copy">
+        <span class="eyebrow">Lookbook</span>
+        <h2>Convierte tus estilos en una galeria que inspire reservas</h2>
+        <p>Sube imagenes reales, destaca tendencias y asocia cada look a un servicio para vender mas con un escaparate visual potente.</p>
+    </div>
+</section>
+
 <section class="admin-grid two-col">
     <article class="panel-card">
         <div class="panel-card-header">
-            <h2>Nuevo estilo</h2>
+            <div>
+                <span class="panel-label">Nuevo estilo</span>
+                <h2>Publicar corte</h2>
+            </div>
         </div>
-        <form class="form-grid single-col" method="post">
+        <form class="form-grid single-col" method="post" enctype="multipart/form-data">
+            <div class="image-preview-card tall">
+                <div id="style-create-preview" class="image-placeholder image-placeholder-style">
+                    <strong>Vista previa del estilo</strong>
+                    <span>Sube una imagen para reforzar la decision del cliente.</span>
+                </div>
+            </div>
             <div class="form-field">
                 <label for="name">Nombre del corte</label>
                 <input id="name" name="name" type="text" required>
@@ -19,7 +36,11 @@
                 <textarea id="description" name="description" rows="4"></textarea>
             </div>
             <div class="form-field">
-                <label for="image_url">Imagen URL</label>
+                <label for="image_file">Imagen del estilo</label>
+                <input id="image_file" name="image_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="style-create-preview">
+            </div>
+            <div class="form-field">
+                <label for="image_url">O usa una URL externa (opcional)</label>
                 <input id="image_url" name="image_url" type="url" placeholder="https://...">
             </div>
             <div class="form-row">
@@ -37,32 +58,37 @@
                     </select>
                 </div>
             </div>
-            <label class="checkbox-field">
-                <input type="checkbox" name="trending" checked>
-                <span>Marcar como tendencia</span>
-            </label>
-            <label class="checkbox-field">
-                <input type="checkbox" name="active" checked>
-                <span>Estilo visible</span>
-            </label>
+            <div class="toggle-grid">
+                <label class="checkbox-field">
+                    <input type="checkbox" name="trending" checked>
+                    <span>Marcar como tendencia</span>
+                </label>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="active" checked>
+                    <span>Estilo visible</span>
+                </label>
+            </div>
             <button class="btn btn-primary" type="submit">Crear estilo</button>
         </form>
     </article>
 
     <article class="panel-card">
         <div class="panel-card-header">
-            <h2>Galeria administrable</h2>
+            <div>
+                <span class="panel-label">Galeria</span>
+                <h2>Estilos publicados</h2>
+            </div>
         </div>
         <div class="style-gallery-grid">
             {% for style in style_list %}
-                <article class="style-admin-card" data-reveal>
-                    <div class="style-admin-media" {% if style.image_url %}style="background-image: linear-gradient(180deg, rgba(7, 7, 7, 0.12), rgba(7, 7, 7, 0.88)), url('{{ style.image_url }}');"{% endif %}>
+                <article class="style-admin-card modern-admin-card" data-reveal>
+                    <div class="style-admin-media" {% if style.image_src %}style="background-image: linear-gradient(180deg, rgba(7, 7, 7, 0.06), rgba(7, 7, 7, 0.92)), url('{{ media_url(style.image_src) }}');"{% endif %}>
                         {% if style.trending %}
                             <span class="trend-badge">En tendencia</span>
                         {% endif %}
                         <strong>{{ style.name[:1] }}</strong>
                     </div>
-                    <form class="form-grid single-col compact-form" method="post" action="{{ url_for('business.style_detail', style_id=style.id) }}">
+                    <form class="form-grid single-col compact-form" method="post" action="{{ url_for('business.style_detail', style_id=style.id) }}" enctype="multipart/form-data">
                         <div class="form-field">
                             <label>Nombre</label>
                             <input name="name" type="text" value="{{ style.name }}" required>
@@ -71,8 +97,21 @@
                             <label>Descripcion</label>
                             <textarea name="description" rows="3">{{ style.description or '' }}</textarea>
                         </div>
+                        <div class="image-preview-card slim">
+                            {% if style.image_src %}
+                                <img id="style-preview-{{ style.id }}" src="{{ media_url(style.image_src) }}" alt="{{ style.name }}">
+                            {% else %}
+                                <div id="style-preview-{{ style.id }}" class="image-placeholder image-placeholder-style">
+                                    <strong>{{ style.name }}</strong>
+                                </div>
+                            {% endif %}
+                        </div>
                         <div class="form-field">
-                            <label>Imagen URL</label>
+                            <label>Reemplazar imagen</label>
+                            <input name="image_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="style-preview-{{ style.id }}">
+                        </div>
+                        <div class="form-field">
+                            <label>URL externa (opcional)</label>
                             <input name="image_url" type="url" value="{{ style.image_url or '' }}">
                         </div>
                         <div class="form-row">
@@ -90,14 +129,16 @@
                                 </select>
                             </div>
                         </div>
-                        <label class="checkbox-field">
-                            <input type="checkbox" name="trending" {% if style.trending %}checked{% endif %}>
-                            <span>En tendencia</span>
-                        </label>
-                        <label class="checkbox-field">
-                            <input type="checkbox" name="active" {% if style.active %}checked{% endif %}>
-                            <span>Activo</span>
-                        </label>
+                        <div class="toggle-grid">
+                            <label class="checkbox-field">
+                                <input type="checkbox" name="trending" {% if style.trending %}checked{% endif %}>
+                                <span>En tendencia</span>
+                            </label>
+                            <label class="checkbox-field">
+                                <input type="checkbox" name="active" {% if style.active %}checked{% endif %}>
+                                <span>Activo</span>
+                            </label>
+                        </div>
                         <div class="confirmation-actions">
                             <button class="btn btn-secondary" type="submit">Guardar</button>
                             <button class="btn btn-danger" type="submit" name="_intent" value="delete" formnovalidate>Eliminar</button>

@@ -4,23 +4,83 @@
 {% block admin_heading %}Ajustes del negocio{% endblock %}
 
 {% block admin_content %}
-<section class="panel-card hero-admin-card">
-    <div>
-        <span class="eyebrow">Marca y experiencia</span>
-        <h2>Personaliza tu barberia como un SaaS premium</h2>
-        <p>Configura identidad, contacto, colores, visuales y secciones publicas que se reflejan automaticamente en la landing del negocio.</p>
+<section class="dashboard-hero panel-card">
+    <div class="dashboard-hero-copy">
+        <span class="eyebrow">Brand studio</span>
+        <h2>Construye una barberia que se vea lista para vender</h2>
+        <p>Personaliza nombre, contacto, branding, tema visual e imagenes del negocio para que la landing publica proyecte una marca urbana, premium y comercial.</p>
     </div>
-    {% if current_tenant %}
-        <a class="btn btn-secondary" href="{{ url_for('business.public_business', tenant_slug=current_tenant.slug) }}" target="_blank" rel="noreferrer">Abrir landing publica</a>
-    {% endif %}
+    <div class="dashboard-hero-actions">
+        {% if current_tenant %}
+            <a class="btn btn-secondary" href="{{ url_for('business.public_business', tenant_slug=current_tenant.slug) }}" target="_blank" rel="noreferrer">Ver landing publica</a>
+        {% endif %}
+        <a class="btn btn-primary" href="{{ url_for('business.styles') }}">Gestionar estilos de cortes</a>
+    </div>
 </section>
 
-<form class="admin-content" method="post">
+<form class="admin-content" method="post" enctype="multipart/form-data">
     <section class="admin-grid two-col">
         <article class="panel-card">
             <div class="panel-card-header">
-                <h2>Identidad del negocio</h2>
+                <div>
+                    <span class="panel-label">Identidad</span>
+                    <h2>Marca principal</h2>
+                </div>
             </div>
+
+            <div class="settings-media-grid">
+                <div class="media-uploader">
+                    <div class="image-preview-card">
+                        {% if settings_record.logo_src %}
+                            <img id="logo-preview" src="{{ media_url(settings_record.logo_src) }}" alt="Logo actual">
+                        {% else %}
+                            <div id="logo-preview" class="image-placeholder image-placeholder-logo">{{ settings_record.business_name[:1] }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label for="logo_file">Logo del negocio</label>
+                        <input id="logo_file" name="logo_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="logo-preview">
+                        <small>Formatos: PNG, JPG, JPEG o WEBP.</small>
+                    </div>
+                </div>
+
+                <div class="media-uploader">
+                    <div class="image-preview-card wide">
+                        {% if settings_record.banner_src %}
+                            <img id="banner-preview" src="{{ media_url(settings_record.banner_src) }}" alt="Banner actual">
+                        {% else %}
+                            <div id="banner-preview" class="image-placeholder image-placeholder-banner">
+                                <strong>Banner premium</strong>
+                                <span>Portada urbana para captar reservas.</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label for="banner_file">Banner o portada</label>
+                        <input id="banner_file" name="banner_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="banner-preview">
+                        <small>Usa una imagen horizontal para el hero publico.</small>
+                    </div>
+                </div>
+
+                <div class="media-uploader">
+                    <div class="image-preview-card wide">
+                        {% if settings_record.featured_image_src or appearance_record.featured_image_url %}
+                            <img id="featured-preview" src="{{ media_url(settings_record.featured_image_src or appearance_record.featured_image_url) }}" alt="Imagen destacada">
+                        {% else %}
+                            <div id="featured-preview" class="image-placeholder image-placeholder-featured">
+                                <strong>Imagen destacada</strong>
+                                <span>Perfecta para hero, paneles y promos visuales.</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label for="featured_image_file">Imagen destacada</label>
+                        <input id="featured_image_file" name="featured_image_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="featured-preview">
+                        <small>Se usa como apoyo visual en la landing y panel.</small>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-grid single-col">
                 <div class="form-field">
                     <label for="business_name">Nombre de la barberia</label>
@@ -31,121 +91,45 @@
                     <input id="slogan" name="slogan" type="text" value="{{ settings_record.slogan }}" required>
                 </div>
                 <div class="form-field">
-                    <label for="logo_url">Logo URL</label>
-                    <input id="logo_url" name="logo_url" type="url" value="{{ settings_record.logo_url or '' }}" placeholder="https://...">
-                </div>
-                <div class="form-field">
-                    <label for="banner_url">Banner o portada URL</label>
-                    <input id="banner_url" name="banner_url" type="url" value="{{ settings_record.banner_url or '' }}" placeholder="https://...">
-                </div>
-                <div class="form-field">
-                    <label for="featured_image_url">Imagen destacada</label>
-                    <input id="featured_image_url" name="featured_image_url" type="url" value="{{ appearance_record.featured_image_url or '' }}" placeholder="https://...">
-                </div>
-                <div class="form-field">
-                    <label for="visual_style">Estilo visual general</label>
-                    <select id="visual_style" name="visual_style">
-                        <option value="premium-barber" {% if appearance_record.visual_style == 'premium-barber' %}selected{% endif %}>Premium Barber</option>
-                        <option value="lux-dark" {% if appearance_record.visual_style == 'lux-dark' %}selected{% endif %}>Lux Dark</option>
-                        <option value="urban-gold" {% if appearance_record.visual_style == 'urban-gold' %}selected{% endif %}>Urban Gold</option>
-                    </select>
-                </div>
-            </div>
-        </article>
-
-        <article class="panel-card">
-            <div class="panel-card-header">
-                <h2>Contacto y ubicacion base</h2>
-            </div>
-            <div class="form-grid single-col">
-                <div class="form-row">
-                    <div class="form-field">
-                        <label for="phone">Telefono</label>
-                        <input id="phone" name="phone" type="text" value="{{ settings_record.phone or '' }}">
-                    </div>
-                    <div class="form-field">
-                        <label for="whatsapp">WhatsApp</label>
-                        <input id="whatsapp" name="whatsapp" type="text" value="{{ settings_record.whatsapp }}" required>
-                    </div>
-                </div>
-                <div class="form-field">
-                    <label for="email">Correo electronico</label>
-                    <input id="email" name="email" type="email" value="{{ settings_record.email or '' }}">
-                </div>
-                <div class="form-field">
-                    <label for="address">Direccion completa</label>
-                    <input id="address" name="address" type="text" value="{{ settings_record.address or '' }}">
-                </div>
-                <div class="form-field">
-                    <label for="location_reference">Referencia</label>
-                    <input id="location_reference" name="location_reference" type="text" value="{{ settings_record.location_reference or '' }}">
-                </div>
-                <div class="form-row">
-                    <div class="form-field">
-                        <label for="city">Ciudad</label>
-                        <input id="city" name="city" type="text" value="{{ settings_record.city or '' }}">
-                    </div>
-                    <div class="form-field">
-                        <label for="province_state">Provincia / Estado</label>
-                        <input id="province_state" name="province_state" type="text" value="{{ settings_record.province_state or '' }}">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-field">
-                        <label for="country">Pais</label>
-                        <input id="country" name="country" type="text" value="{{ settings_record.country or '' }}">
-                    </div>
-                    <div class="form-field">
-                        <label for="google_maps_url">Enlace Google Maps</label>
-                        <input id="google_maps_url" name="google_maps_url" type="url" value="{{ settings_record.google_maps_url or '' }}" placeholder="https://maps.google.com/...">
-                    </div>
-                </div>
-            </div>
-        </article>
-    </section>
-
-    <section class="admin-grid two-col">
-        <article class="panel-card">
-            <div class="panel-card-header">
-                <h2>Horario y agenda</h2>
-            </div>
-            <div class="form-grid single-col">
-                <div class="form-row">
-                    <div class="form-field">
-                        <label for="hora_apertura">Apertura</label>
-                        <input id="hora_apertura" name="hora_apertura" type="time" value="{{ settings_record.hora_apertura.strftime('%H:%M') }}" required>
-                    </div>
-                    <div class="form-field">
-                        <label for="hora_cierre">Cierre</label>
-                        <input id="hora_cierre" name="hora_cierre" type="time" value="{{ settings_record.hora_cierre.strftime('%H:%M') }}" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-field">
-                        <label for="intervalo_minutos">Intervalo</label>
-                        <select id="intervalo_minutos" name="intervalo_minutos">
-                            {% for interval in [15, 20, 30, 45, 60] %}
-                                <option value="{{ interval }}" {% if settings_record.intervalo_minutos == interval %}selected{% endif %}>{{ interval }} minutos</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label for="working_days">Dias laborables</label>
-                        <input id="working_days" name="working_days" type="text" value="{{ settings_record.working_days or '' }}" placeholder="Lunes a Sabado">
-                    </div>
-                </div>
-                <div class="form-field">
                     <label for="mensaje_bienvenida">Mensaje de bienvenida</label>
                     <textarea id="mensaje_bienvenida" name="mensaje_bienvenida" rows="4">{{ settings_record.mensaje_bienvenida or '' }}</textarea>
                 </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="logo_url">Logo por URL (opcional)</label>
+                        <input id="logo_url" name="logo_url" type="url" value="{{ settings_record.logo_url or '' }}" placeholder="https://...">
+                    </div>
+                    <div class="form-field">
+                        <label for="banner_url">Banner por URL (opcional)</label>
+                        <input id="banner_url" name="banner_url" type="url" value="{{ settings_record.banner_url or '' }}" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label for="featured_image_url">Imagen destacada por URL (opcional)</label>
+                    <input id="featured_image_url" name="featured_image_url" type="url" value="{{ appearance_record.featured_image_url or '' }}" placeholder="https://...">
+                </div>
             </div>
         </article>
 
         <article class="panel-card">
             <div class="panel-card-header">
-                <h2>Apariencia visual</h2>
+                <div>
+                    <span class="panel-label">Experiencia de marca</span>
+                    <h2>Tema visual y publicacion</h2>
+                </div>
             </div>
+
             <div class="form-grid single-col">
+                <div class="form-field">
+                    <label for="visual_theme">Estilo visual general</label>
+                    <select id="visual_theme" name="visual_theme">
+                        {% for option in theme_options %}
+                            <option value="{{ option }}" {% if (settings_record.visual_theme or appearance_record.visual_style) == option %}selected{% endif %}>
+                                {{ option.replace('_', ' ')|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div class="form-row">
                     <div class="form-field">
                         <label for="primary_color">Color principal</label>
@@ -156,14 +140,23 @@
                         <input id="secondary_color" name="secondary_color" type="color" value="{{ settings_record.secondary_color or '#7f1f1f' }}">
                     </div>
                 </div>
-                <div class="settings-preview-card">
-                    <span class="panel-label">Vista previa</span>
-                    <div class="brand-preview">
-                        <div class="brand-preview-swatch" style="background: {{ settings_record.primary_color or '#d2b271' }}"></div>
-                        <div class="brand-preview-swatch" style="background: {{ settings_record.secondary_color or '#7f1f1f' }}"></div>
-                        <strong>{{ settings_record.business_name }}</strong>
+            </div>
+
+            <div class="brand-preview-shell">
+                <div class="brand-preview-cover" {% if settings_record.banner_src %}style="background-image: linear-gradient(135deg, rgba(7, 7, 7, 0.82), rgba(7, 7, 7, 0.48)), url('{{ media_url(settings_record.banner_src) }}');"{% endif %}>
+                    <div class="brand-preview-content">
+                        <span class="eyebrow">Vista previa</span>
+                        <h3>{{ settings_record.business_name }}</h3>
+                        <p>{{ settings_record.slogan }}</p>
+                        <div class="brand-preview-pills">
+                            <span>{{ settings_record.working_days or 'Agenda flexible' }}</span>
+                            <span>{{ settings_record.hora_apertura.strftime('%H:%M') }} - {{ settings_record.hora_cierre.strftime('%H:%M') }}</span>
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="toggle-grid">
                 <label class="checkbox-field">
                     <input type="checkbox" name="show_services" {% if appearance_record.show_services %}checked{% endif %}>
                     <span>Mostrar servicios destacados</span>
@@ -195,9 +188,26 @@
     <section class="admin-grid two-col">
         <article class="panel-card">
             <div class="panel-card-header">
-                <h2>Redes sociales</h2>
+                <div>
+                    <span class="panel-label">Contacto</span>
+                    <h2>Canales del negocio</h2>
+                </div>
             </div>
             <div class="form-grid single-col">
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="phone">Telefono</label>
+                        <input id="phone" name="phone" type="text" value="{{ settings_record.phone or '' }}">
+                    </div>
+                    <div class="form-field">
+                        <label for="whatsapp">WhatsApp</label>
+                        <input id="whatsapp" name="whatsapp" type="text" value="{{ settings_record.whatsapp }}" required>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label for="email">Correo electronico</label>
+                    <input id="email" name="email" type="email" value="{{ settings_record.email or '' }}">
+                </div>
                 <div class="form-field">
                     <label for="instagram_url">Instagram</label>
                     <input id="instagram_url" name="instagram_url" type="url" value="{{ social_map.get('instagram').url if social_map.get('instagram') else '' }}" placeholder="https://instagram.com/...">
@@ -215,9 +225,42 @@
 
         <article class="panel-card">
             <div class="panel-card-header">
-                <h2>Resumen de publicacion</h2>
+                <div>
+                    <span class="panel-label">Ubicacion base</span>
+                    <h2>Direccion visible</h2>
+                </div>
             </div>
-            <div class="summary-grid">
+            <div class="form-grid single-col">
+                <div class="form-field">
+                    <label for="address">Direccion completa</label>
+                    <input id="address" name="address" type="text" value="{{ settings_record.address or '' }}">
+                </div>
+                <div class="form-field">
+                    <label for="location_reference">Referencia</label>
+                    <input id="location_reference" name="location_reference" type="text" value="{{ settings_record.location_reference or '' }}">
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="city">Ciudad</label>
+                        <input id="city" name="city" type="text" value="{{ settings_record.city or '' }}">
+                    </div>
+                    <div class="form-field">
+                        <label for="province_state">Provincia / Estado</label>
+                        <input id="province_state" name="province_state" type="text" value="{{ settings_record.province_state or '' }}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="country">Pais</label>
+                        <input id="country" name="country" type="text" value="{{ settings_record.country or '' }}">
+                    </div>
+                    <div class="form-field">
+                        <label for="google_maps_url">Google Maps URL</label>
+                        <input id="google_maps_url" name="google_maps_url" type="url" value="{{ settings_record.google_maps_url or '' }}" placeholder="https://maps.google.com/...">
+                    </div>
+                </div>
+            </div>
+            <div class="summary-grid summary-grid-soft">
                 <div>
                     <span>Slug publico</span>
                     <strong>{{ current_tenant.slug if current_tenant else '-' }}</strong>
@@ -227,16 +270,8 @@
                     <strong>{{ current_tenant.domain_url if current_tenant else '-' }}</strong>
                 </div>
                 <div>
-                    <span>Direccion visible</span>
-                    <strong>{{ location_record.address or settings_record.address or 'Pendiente' }}</strong>
-                </div>
-                <div>
                     <span>Mapa</span>
                     <strong>{{ 'Activo' if settings_record.show_map else 'Oculto' }}</strong>
-                </div>
-                <div>
-                    <span>Galeria</span>
-                    <strong>{{ 'Activa' if settings_record.show_gallery_styles else 'Oculta' }}</strong>
                 </div>
                 <div>
                     <span>Promociones</span>
@@ -246,8 +281,178 @@
         </article>
     </section>
 
+    <section class="admin-grid two-col">
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <div>
+                    <span class="panel-label">Localizacion</span>
+                    <h2>Idioma y moneda</h2>
+                </div>
+            </div>
+            <div class="form-grid single-col">
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="default_language">Idioma por defecto</label>
+                        <select id="default_language" name="default_language">
+                            {% for code, label in language_options.items() %}
+                                <option value="{{ code }}" {% if settings_record.default_language == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="currency_code">Tipo de moneda</label>
+                        <select id="currency_code" name="currency_code">
+                            {% for code, config in currency_options.items() %}
+                                <option value="{{ code }}" {% if settings_record.currency_code == code %}selected{% endif %}>{{ code }} ({{ config.symbol }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label for="currency_symbol">Simbolo de moneda</label>
+                    <input id="currency_symbol" name="currency_symbol" type="text" value="{{ settings_record.currency_symbol or '' }}" placeholder="RD$, US$, €, MX$">
+                </div>
+                <label class="checkbox-field">
+                    <input type="checkbox" name="show_language_selector" {% if settings_record.show_language_selector %}checked{% endif %}>
+                    <span>Mostrar selector de idioma al cliente</span>
+                </label>
+            </div>
+        </article>
+
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <div>
+                    <span class="panel-label">Textos de portada</span>
+                    <h2>Hero y mensajes principales</h2>
+                </div>
+            </div>
+            <div class="form-grid single-col">
+                <div class="form-field">
+                    <label for="hero_badge_text">Texto superior del hero</label>
+                    <input id="hero_badge_text" name="hero_badge_text" type="text" value="{{ settings_record.hero_badge_text or '' }}" placeholder="Barberia premium">
+                </div>
+                <div class="form-field">
+                    <label for="hero_title">Titulo principal</label>
+                    <input id="hero_title" name="hero_title" type="text" value="{{ settings_record.hero_title or '' }}" placeholder="Ronald BarberShop">
+                </div>
+                <div class="form-field">
+                    <label for="hero_description">Descripcion principal</label>
+                    <textarea id="hero_description" name="hero_description" rows="4">{{ settings_record.hero_description or '' }}</textarea>
+                </div>
+                <div class="form-field">
+                    <label for="final_cta_title">Titulo de cierre</label>
+                    <input id="final_cta_title" name="final_cta_title" type="text" value="{{ settings_record.final_cta_title or '' }}" placeholder="Listo para vivir la experiencia">
+                </div>
+                <div class="form-field">
+                    <label for="final_cta_description">Descripcion de cierre</label>
+                    <textarea id="final_cta_description" name="final_cta_description" rows="4">{{ settings_record.final_cta_description or '' }}</textarea>
+                </div>
+            </div>
+        </article>
+    </section>
+
     <section class="panel-card">
-        <button class="btn btn-primary" type="submit">Guardar ajustes del negocio</button>
+        <div class="panel-card-header">
+            <div>
+                <span class="panel-label">Secciones publicas</span>
+                <h2>Textos editables de la landing</h2>
+            </div>
+        </div>
+        <div class="form-grid">
+            <div class="form-field">
+                <label for="services_title">Titulo de servicios</label>
+                <input id="services_title" name="services_title" type="text" value="{{ settings_record.services_title or '' }}">
+            </div>
+            <div class="form-field">
+                <label for="styles_title">Titulo de estilos</label>
+                <input id="styles_title" name="styles_title" type="text" value="{{ settings_record.styles_title or '' }}">
+            </div>
+            <div class="form-field full-width">
+                <label for="services_description">Descripcion de servicios</label>
+                <textarea id="services_description" name="services_description" rows="3">{{ settings_record.services_description or '' }}</textarea>
+            </div>
+            <div class="form-field full-width">
+                <label for="styles_description">Descripcion de estilos</label>
+                <textarea id="styles_description" name="styles_description" rows="3">{{ settings_record.styles_description or '' }}</textarea>
+            </div>
+            <div class="form-field">
+                <label for="promotions_title">Titulo de promociones</label>
+                <input id="promotions_title" name="promotions_title" type="text" value="{{ settings_record.promotions_title or '' }}">
+            </div>
+            <div class="form-field">
+                <label for="location_title">Titulo de ubicacion</label>
+                <input id="location_title" name="location_title" type="text" value="{{ settings_record.location_title or '' }}">
+            </div>
+            <div class="form-field full-width">
+                <label for="promotions_description">Descripcion de promociones</label>
+                <textarea id="promotions_description" name="promotions_description" rows="3">{{ settings_record.promotions_description or '' }}</textarea>
+            </div>
+            <div class="form-field full-width">
+                <label for="location_description">Descripcion o referencia de ubicacion</label>
+                <textarea id="location_description" name="location_description" rows="3">{{ settings_record.location_description or '' }}</textarea>
+            </div>
+            <div class="form-field">
+                <label for="testimonials_title">Titulo de testimonios</label>
+                <input id="testimonials_title" name="testimonials_title" type="text" value="{{ settings_record.testimonials_title or '' }}">
+            </div>
+            <div class="form-field full-width">
+                <label for="testimonials_description">Descripcion de testimonios</label>
+                <textarea id="testimonials_description" name="testimonials_description" rows="3">{{ settings_record.testimonials_description or '' }}</textarea>
+            </div>
+        </div>
+    </section>
+
+    <section class="admin-grid two-col">
+        <article class="panel-card">
+            <div class="panel-card-header">
+                <div>
+                    <span class="panel-label">Horario</span>
+                    <h2>Agenda comercial</h2>
+                </div>
+            </div>
+            <div class="form-grid single-col">
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="hora_apertura">Apertura</label>
+                        <input id="hora_apertura" name="hora_apertura" type="time" value="{{ settings_record.hora_apertura.strftime('%H:%M') }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="hora_cierre">Cierre</label>
+                        <input id="hora_cierre" name="hora_cierre" type="time" value="{{ settings_record.hora_cierre.strftime('%H:%M') }}" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="intervalo_minutos">Intervalo</label>
+                        <select id="intervalo_minutos" name="intervalo_minutos">
+                            {% for interval in [15, 20, 30, 45, 60] %}
+                                <option value="{{ interval }}" {% if settings_record.intervalo_minutos == interval %}selected{% endif %}>{{ interval }} minutos</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="working_days">Dias laborables</label>
+                        <input id="working_days" name="working_days" type="text" value="{{ settings_record.working_days or '' }}" placeholder="Lunes a Sabado">
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel-card panel-card-highlight">
+            <div class="panel-card-header">
+                <div>
+                    <span class="panel-label">Publicacion</span>
+                    <h2>Impacto comercial</h2>
+                </div>
+            </div>
+            <ul class="feature-list premium-checks">
+                <li>Logo, banner e imagen destacada con upload real.</li>
+                <li>Landing pública con CTA de reserva y WhatsApp.</li>
+                <li>Tema visual consistente para toda la barberia.</li>
+                <li>Moneda, idioma y textos clave editables desde este mismo panel.</li>
+            </ul>
+            <button class="btn btn-primary" type="submit">Guardar ajustes del negocio</button>
+        </article>
     </section>
 </form>
 {% endblock %}

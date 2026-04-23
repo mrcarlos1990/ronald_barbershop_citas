@@ -6,8 +6,8 @@
 <section class="page-intro">
     <div class="container narrow">
         <span class="eyebrow">Historial del cliente</span>
-        <h1>Mis citas</h1>
-        <p>Visualiza tus citas, su estado actual y las acciones permitidas antes de que inicien.</p>
+        <h1>{{ t('client.appointments_title') }}</h1>
+        <p>{{ t('client.appointments_description') }}</p>
     </div>
 </section>
 
@@ -19,6 +19,7 @@
                 <div class="table-actions">
                     <a class="text-link" href="{{ contact_link }}" target="_blank" rel="noreferrer">WhatsApp</a>
                     <a class="text-link" href="{{ url_for('main.booking_form') }}">Agendar nueva</a>
+                    <a class="text-link danger-text" href="{{ url_for('client.logout') }}">{{ t('client.logout') }}</a>
                 </div>
             </div>
             <p class="empty-state">Solo puedes ver y gestionar tus propias reservas autenticadas.</p>

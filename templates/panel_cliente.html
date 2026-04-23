@@ -6,8 +6,8 @@
 <section class="page-intro">
     <div class="container narrow">
         <span class="eyebrow">Area privada del cliente</span>
-        <h1>Hola, {{ current_client.nombre }}</h1>
-        <p>Desde aqui puedes reservar nuevas citas, revisar tu historial, cancelar o reprogramar y mantener tus datos al dia.</p>
+        <h1>{{ t('client.hello') }}, {{ current_client.nombre }}</h1>
+        <p>{{ t('client.panel_description') }}</p>
     </div>
 </section>
 
@@ -76,12 +76,13 @@
 
         <article class="panel-card">
             <div class="panel-card-header">
-                <h2>Atajos</h2>
+                <h2>{{ t('client.quick_actions') }}</h2>
             </div>
             <div class="list-stack">
                 <a class="btn btn-primary btn-full" href="{{ url_for('main.booking_form') }}">Agendar cita</a>
                 <a class="btn btn-secondary btn-full" href="{{ url_for('client.appointments') }}">Ver mis citas</a>
                 <a class="btn btn-secondary btn-full" href="{{ contact_link }}" target="_blank" rel="noreferrer">Contactar por WhatsApp</a>
+                <a class="btn btn-danger btn-full" href="{{ url_for('client.logout') }}">{{ t('client.logout') }}</a>
             </div>
         </article>
     </div>

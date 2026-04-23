@@ -1,10 +1,53 @@
 document.addEventListener("DOMContentLoaded", () => {
+    initPageLoader();
+    initSidebarToggle();
     initConfirmActions();
+    initImagePreviews();
     initPasswordConfirmation();
     initRevealAnimations();
     initCountUp();
     document.querySelectorAll("form[data-availability-url]").forEach(initBookingExperience);
 });
+
+function initPageLoader() {
+    const loader = document.querySelector("#page-loader");
+    if (!loader) {
+        return;
+    }
+
+    requestAnimationFrame(() => {
+        loader.classList.add("is-hidden");
+    });
+}
+
+function initSidebarToggle() {
+    const toggle = document.querySelector("[data-sidebar-toggle]");
+    if (!toggle) {
+        return;
+    }
+
+    const key = "ronald-admin-sidebar-collapsed";
+    const body = document.body;
+
+    if (window.localStorage.getItem(key) === "1" && window.innerWidth > 1080) {
+        body.classList.add("sidebar-collapsed");
+    }
+
+    window.addEventListener("resize", () => {
+        if (window.innerWidth <= 1080) {
+            body.classList.remove("sidebar-collapsed");
+        }
+    });
+
+    toggle.addEventListener("click", () => {
+        if (window.innerWidth <= 1080) {
+            body.classList.remove("sidebar-collapsed");
+            return;
+        }
+        body.classList.toggle("sidebar-collapsed");
+        window.localStorage.setItem(key, body.classList.contains("sidebar-collapsed") ? "1" : "0");
+    });
+}
 
 function initConfirmActions() {
     document.querySelectorAll("form[data-confirm]").forEach((form) => {
@@ -13,6 +56,32 @@ function initConfirmActions() {
             if (!window.confirm(message)) {
                 event.preventDefault();
             }
+        });
+    });
+}
+
+function initImagePreviews() {
+    document.querySelectorAll('input[type="file"][data-preview-target]').forEach((input) => {
+        input.addEventListener("change", () => {
+            const targetId = input.dataset.previewTarget;
+            const target = document.getElementById(targetId);
+            const file = input.files && input.files[0];
+
+            if (!target || !file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.addEventListener("load", (event) => {
+                const markup = `<img src="${event.target?.result || ""}" alt="Vista previa">`;
+                if (target.tagName === "IMG") {
+                    target.src = String(event.target?.result || "");
+                } else {
+                    target.innerHTML = markup;
+                    target.classList.remove("image-placeholder");
+                }
+            });
+            reader.readAsDataURL(file);
         });
     });
 }

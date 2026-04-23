@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}{{ settings.business_name }} | Experiencia premium de barberia{% endblock %}
+
+{% block content %}
+<section class="hero-section public-hero-shell" {% if settings.banner_src %}style="background-image: linear-gradient(120deg, rgba(5, 5, 7, 0.9), rgba(5, 5, 7, 0.62)), url('{{ media_url(settings.banner_src) }}');"{% endif %}>
+    <div class="container hero-grid public-hero-grid">
+        <div class="hero-copy hero-copy-rich" data-reveal>
+            <div class="hero-badge-row">
+                <span class="eyebrow">{{ settings.hero_badge_text or t('landing.hero_badge') }} · {{ tenant.slug if tenant else (current_tenant.slug if current_tenant else 'marca') }}</span>
+                <span class="glass-pill">{{ settings.visual_theme|replace('_', ' ')|title }}</span>
+            </div>
+
+            <div class="brand-stage">
+                {% if settings.logo_src %}
+                    <img class="brand-hero-logo xl" src="{{ media_url(settings.logo_src) }}" alt="{{ settings.business_name }}">
+                {% else %}
+                    <span class="brand-mark-fallback xl">{{ settings.business_name[:1] }}</span>
+                {% endif %}
+                <div>
+                    <h1>{{ settings.hero_title or settings.business_name }}</h1>
+                    <p class="hero-tagline">{{ settings.slogan }}</p>
+                </div>
+            </div>
+
+            <p class="hero-description hero-description-wide">
+                {{ settings.hero_description or settings.mensaje_bienvenida or t('landing.hero_description') }}
+            </p>
+
+            <div class="hero-actions">
+                {% if current_client %}
+                    <a class="btn btn-primary" href="{{ url_for('main.booking_form') }}">{{ t('landing.reserve_now') }}</a>
+                    <a class="btn btn-secondary" href="{{ url_for('client.dashboard') }}">{{ t('landing.my_panel') }}</a>
+                {% else %}
+                    <a class="btn btn-primary" href="{{ url_for('client.register') }}">{{ t('nav.create_account') }}</a>
+                    <a class="btn btn-secondary" href="{{ url_for('client.login') }}">{{ t('nav.login') }}</a>
+                {% endif %}
+            </div>
+
+            <div class="hero-actions compact-actions">
+                <a class="btn btn-secondary" href="{{ booking_url }}">{{ t('landing.book_appointment') }}</a>
+                <a class="btn btn-secondary" href="{{ whatsapp_link }}" target="_blank" rel="noreferrer">{{ t('landing.whatsapp') }}</a>
+                {% if location and location.google_maps_url %}
+                    <a class="btn btn-secondary" href="{{ location.google_maps_url }}" target="_blank" rel="noreferrer">{{ t('landing.how_to_get') }}</a>
+                {% endif %}
+            </div>
+
+            <div class="hero-stats premium-stats">
+                <div class="stat-card">
+                    <strong data-countup="{{ services|length }}">{{ services|length }}</strong>
+                    <span>{{ t('landing.stats.services') }}</span>
+                </div>
+                <div class="stat-card">
+                    <strong data-countup="{{ styles|length }}">{{ styles|length }}</strong>
+                    <span>{{ t('landing.stats.styles') }}</span>
+                </div>
+                <div class="stat-card">
+                    <strong>{{ settings.hora_apertura|display_time }}</strong>
+                    <span>Abre {{ settings.working_days or 'agenda flexible' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-panel hero-panel-rich" data-reveal>
+            <div class="hero-visual-stage">
+                {% if settings.featured_image_src or appearance.featured_image_url %}
+                    <img class="hero-feature-image" src="{{ media_url(settings.featured_image_src or appearance.featured_image_url) }}" alt="Imagen destacada de {{ settings.business_name }}">
+                {% else %}
+                    <div class="hero-feature-placeholder">
+                        <span class="eyebrow">Urban premium</span>
+                        <strong>Barber booking SaaS</strong>
+                        <p>Una presencia comercial fuerte para barberias que quieren crecer.</p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="glass-card">
+                <span class="panel-label">Contacto directo</span>
+                <div class="mini-schedule">
+                    <div class="mini-row">
+                        <span>Telefono</span>
+                        <strong>{{ settings.phone or settings.whatsapp }}</strong>
+                    </div>
+                    <div class="mini-row">
+                        <span>WhatsApp</span>
+                        <strong>{{ settings.whatsapp }}</strong>
+                    </div>
+                    <div class="mini-row">
+                        <span>Direccion</span>
+                        <strong>{{ location.address if location and location.address else settings.address }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="container">
+        <div class="feature-banner" data-reveal>
+            <div>
+                <span class="eyebrow">Por que destaca</span>
+                <h2>{{ t('landing.feature_title') }}</h2>
+            </div>
+            <div class="feature-pills">
+                <span>{{ t('landing.feature_one') }}</span>
+                <span>{{ t('landing.feature_two') }}</span>
+                <span>{{ t('landing.feature_three') }}</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if appearance.show_services %}
+<section class="section-block">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Servicios destacados</span>
+            <h2>{{ settings.services_title or t('landing.services_title') }}</h2>
+            {% if settings.services_description %}
+                <p>{{ settings.services_description }}</p>
+            {% endif %}
+        </div>
+        <div class="card-grid three-col service-showcase-grid">
+            {% for service in services[:6] %}
+                <article class="service-card service-card-rich service-card-premium" data-reveal>
+                    <div class="service-card-top">
+                        <span class="service-token">{{ service.nombre[:2]|upper }}</span>
+                        <strong>{{ service.precio|currency }}</strong>
+                    </div>
+                    <h3>{{ service.nombre }}</h3>
+                    <p>{{ service.descripcion or 'Servicio premium pensado para clientes que valoran precision y presencia.' }}</p>
+                    <div class="service-meta">
+                        <span>{{ service.categoria or 'Barber service' }} · {{ service.duracion_minutos }} min</span>
+                        <a href="{{ url_for('main.booking_form', servicio_id=service.id) }}">Reservar</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if settings.show_gallery_styles and appearance.show_gallery_styles %}
+<section class="section-block accent-section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Estilos de cortes</span>
+            <h2>{{ settings.styles_title or t('landing.styles_title') }}</h2>
+            {% if settings.styles_description %}
+                <p>{{ settings.styles_description }}</p>
+            {% endif %}
+        </div>
+        <div class="style-gallery-grid public-style-grid">
+            {% for style in styles %}
+                <article class="style-showcase-card immersive-style-card" data-reveal>
+                    <div class="style-showcase-media" {% if style.image_src %}style="background-image: linear-gradient(180deg, rgba(7, 7, 7, 0.06), rgba(7, 7, 7, 0.92)), url('{{ media_url(style.image_src) }}');"{% endif %}>
+                        {% if style.trending %}
+                            <span class="trend-badge">En tendencia</span>
+                        {% endif %}
+                        <strong>{{ style.name[:1] }}</strong>
+                    </div>
+                    <div class="style-showcase-body">
+                        <h3>{{ style.name }}</h3>
+                        <p>{{ style.description or 'Look premium disponible para tu proxima visita.' }}</p>
+                        <div class="service-meta">
+                            <span>{{ style.service.nombre if style.service else 'Look personalizado' }}</span>
+                            <strong>{{ style.suggested_price|currency if style.suggested_price else 'Consultar' }}</strong>
+                        </div>
+                    </div>
+                </article>
+            {% else %}
+                <p class="empty-state">La galeria de estilos aun no tiene cortes publicados.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if settings.show_promotions and appearance.show_promotions %}
+<section class="section-block">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Promociones activas</span>
+            <h2>{{ settings.promotions_title or t('landing.promotions_title') }}</h2>
+            {% if settings.promotions_description %}
+                <p>{{ settings.promotions_description }}</p>
+            {% endif %}
+        </div>
+        <div class="promo-grid promo-grid-rich">
+            {% for promotion in promotions %}
+                <article class="promo-admin-card public-promo-card promo-card-premium" data-reveal>
+                    {% if promotion.image_src %}
+                        <div class="promo-banner" style="background-image: linear-gradient(180deg, rgba(7, 7, 7, 0.1), rgba(7, 7, 7, 0.88)), url('{{ media_url(promotion.image_src) }}');"></div>
+                    {% endif %}
+                    <div class="promo-admin-top">
+                        <span class="status-badge status-confirmada">Activa</span>
+                        <strong>{{ promotion.discount_percentage }}%</strong>
+                    </div>
+                    <h3>{{ promotion.title }}</h3>
+                    <p>{{ promotion.description or 'Promocion activa disponible por tiempo limitado.' }}</p>
+                    <div class="promo-dates">
+                        <span>Vigencia hasta {{ promotion.end_date|display_date }}</span>
+                    </div>
+                </article>
+            {% else %}
+                <p class="empty-state">No hay promociones activas en este momento.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if appearance.show_barbers %}
+<section class="section-block accent-section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Equipo</span>
+            <h2>Barberos con presencia y especialidad</h2>
+        </div>
+        <div class="card-grid three-col">
+            {% for barber in barbers %}
+                <article class="team-card team-card-premium" data-reveal>
+                    <div class="avatar-ring">{{ barber.nombre[:1] }}</div>
+                    <h3>{{ barber.nombre }}</h3>
+                    <p class="team-role">{{ barber.especialidad or 'Atencion premium' }}</p>
+                    <p>{{ barber.bio or 'Atencion profesional, limpia y pensada para fidelizar a cada cliente.' }}</p>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="section-block">
+    <div class="container admin-grid two-col">
+        <article class="panel-card location-panel" data-reveal>
+            <div class="panel-card-header">
+                <div>
+                    <span class="panel-label">Como llegar</span>
+                    <h2>{{ settings.location_title or t('landing.location_title') }}</h2>
+                </div>
+            </div>
+            <div class="list-stack">
+                <div class="location-card">
+                    <span class="panel-label">Direccion</span>
+                    <strong>{{ location.address if location and location.address else settings.address }}</strong>
+                    <p>{{ settings.location_description or (location.reference if location and location.reference else settings.location_reference) or 'Agrega una referencia para orientar mejor al cliente.' }}</p>
+                </div>
+                <div class="summary-grid summary-grid-soft">
+                    <div>
+                        <span>Ciudad</span>
+                        <strong>{{ settings.city or 'N/D' }}</strong>
+                    </div>
+                    <div>
+                        <span>Pais</span>
+                        <strong>{{ settings.country or 'N/D' }}</strong>
+                    </div>
+                </div>
+                <div class="confirmation-actions">
+                    {% if location and location.google_maps_url %}
+                        <a class="btn btn-secondary" href="{{ location.google_maps_url }}" target="_blank" rel="noreferrer">Ver ubicacion</a>
+                        <a class="btn btn-primary" href="{{ location.google_maps_url }}" target="_blank" rel="noreferrer">Como llegar</a>
+                    {% endif %}
+                    <a class="btn btn-secondary" href="{{ whatsapp_link }}" target="_blank" rel="noreferrer">WhatsApp</a>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel-card" data-reveal>
+            <div class="panel-card-header">
+                <div>
+                    <span class="panel-label">Horario</span>
+                    <h2>Agenda del negocio</h2>
+                </div>
+            </div>
+            {% if location and location.show_map and location.embed_url %}
+                <div class="map-frame-wrap">
+                    <iframe class="map-frame" src="{{ location.embed_url }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            {% else %}
+                <p class="empty-state">El mapa se encuentra oculto actualmente.</p>
+            {% endif %}
+            <div class="summary-grid summary-grid-soft">
+                <div>
+                    <span>Dias laborables</span>
+                    <strong>{{ settings.working_days or 'Consultar' }}</strong>
+                </div>
+                <div>
+                    <span>Horario</span>
+                    <strong>{{ settings.hora_apertura|display_time }} - {{ settings.hora_cierre|display_time }}</strong>
+                </div>
+            </div>
+        </article>
+    </div>
+</section>
+
+{% if settings.show_testimonials and appearance.show_testimonials %}
+<section class="section-block accent-section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Testimonios</span>
+            <h2>{{ settings.testimonials_title or t('landing.testimonials_title') }}</h2>
+            {% if settings.testimonials_description %}
+                <p>{{ settings.testimonials_description }}</p>
+            {% endif %}
+        </div>
+        <div class="card-grid three-col">
+            {% for testimonial in testimonials %}
+                <article class="testimonial-card testimonial-card-premium" data-reveal>
+                    <div class="testimonial-stars">
+                        {% for _ in range(testimonial.rating) %}★{% endfor %}
+                    </div>
+                    <p>"{{ testimonial.comment }}"</p>
+                    <strong>{{ testimonial.client_name }}</strong>
+                </article>
+            {% else %}
+                <p class="empty-state">Aun no hay testimonios visibles.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="section-block">
+    <div class="container final-cta-card premium-cta" data-reveal>
+        <div>
+            <span class="eyebrow">Reserva inmediata</span>
+            <h2>{{ settings.final_cta_title or t('landing.final_cta_title') }} {{ settings.business_name }}</h2>
+            <p>{{ settings.final_cta_description or t('landing.final_cta_description') }}</p>
+        </div>
+        <div class="hero-actions compact-actions">
+            <a class="btn btn-primary" href="{{ booking_url }}">{{ t('landing.book_appointment') }}</a>
+            <a class="btn btn-secondary" href="{{ whatsapp_link }}" target="_blank" rel="noreferrer">{{ t('landing.whatsapp') }}</a>
+        </div>
+        {% if social_links %}
+            <div class="social-link-row">
+                {% for link in social_links %}
+                    <a class="social-pill" href="{{ link.url }}" target="_blank" rel="noreferrer">{{ link.label or link.platform }}</a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

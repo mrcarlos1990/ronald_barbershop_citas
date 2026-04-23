@@ -152,8 +152,15 @@ class BusinessSettings(db.Model, TimestampMixin):
     google_maps_url = db.Column(db.String(255))
     logo_url = db.Column(db.String(255))
     banner_url = db.Column(db.String(255))
+    logo_path = db.Column(db.String(255))
+    banner_path = db.Column(db.String(255))
+    featured_image_path = db.Column(db.String(255))
     primary_color = db.Column(db.String(20), nullable=False, default="#d2b271")
     secondary_color = db.Column(db.String(20), nullable=False, default="#7f1f1f")
+    visual_theme = db.Column(db.String(80), nullable=False, default="urban_gold")
+    default_language = db.Column(db.String(10), nullable=False, default="es")
+    currency_code = db.Column(db.String(10), nullable=False, default="USD")
+    currency_symbol = db.Column(db.String(10), nullable=False, default="$")
     working_days = db.Column(db.String(120), default="Lunes a Sabado")
     hora_apertura = db.Column(
         db.Time,
@@ -171,10 +178,26 @@ class BusinessSettings(db.Model, TimestampMixin):
         nullable=False,
         default="Hola. Bienvenido a Ronald BarberShop. Agenda tu cita en menos de un minuto.",
     )
+    hero_badge_text = db.Column(db.String(180))
+    hero_title = db.Column(db.String(220))
+    hero_description = db.Column(db.Text)
+    services_title = db.Column(db.String(220))
+    services_description = db.Column(db.Text)
+    styles_title = db.Column(db.String(220))
+    styles_description = db.Column(db.Text)
+    promotions_title = db.Column(db.String(220))
+    promotions_description = db.Column(db.Text)
+    location_title = db.Column(db.String(220))
+    location_description = db.Column(db.Text)
+    testimonials_title = db.Column(db.String(220))
+    testimonials_description = db.Column(db.Text)
+    final_cta_title = db.Column(db.String(220))
+    final_cta_description = db.Column(db.Text)
     show_map = db.Column(db.Boolean, nullable=False, default=True)
     show_gallery_styles = db.Column(db.Boolean, nullable=False, default=True)
     show_promotions = db.Column(db.Boolean, nullable=False, default=True)
     show_testimonials = db.Column(db.Boolean, nullable=False, default=True)
+    show_language_selector = db.Column(db.Boolean, nullable=False, default=True)
 
     tenant = db.relationship("Tenant", back_populates="business_settings")
 
@@ -210,6 +233,18 @@ class BusinessSettings(db.Model, TimestampMixin):
     def direccion(self, value):
         self.address = value
 
+    @property
+    def logo_src(self):
+        return self.logo_path or self.logo_url
+
+    @property
+    def banner_src(self):
+        return self.banner_path or self.banner_url
+
+    @property
+    def featured_image_src(self):
+        return self.featured_image_path
+
 
 class AppearanceSettings(db.Model, TimestampMixin):
     __tablename__ = "appearance_settings"
@@ -217,7 +252,7 @@ class AppearanceSettings(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey("tenants.id"), nullable=False, unique=True, index=True)
     featured_image_url = db.Column(db.String(255))
-    visual_style = db.Column(db.String(80), nullable=False, default="premium-barber")
+    visual_style = db.Column(db.String(80), nullable=False, default="urban_gold")
     show_services = db.Column(db.Boolean, nullable=False, default=True)
     show_barbers = db.Column(db.Boolean, nullable=False, default=True)
     show_gallery_styles = db.Column(db.Boolean, nullable=False, default=True)
@@ -272,12 +307,17 @@ class HaircutStyle(db.Model, TimestampMixin):
     name = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text)
     image_url = db.Column(db.String(255))
+    image_path = db.Column(db.String(255))
     trending = db.Column(db.Boolean, nullable=False, default=False)
     suggested_price = db.Column(db.Float)
     active = db.Column(db.Boolean, nullable=False, default=True)
 
     tenant = db.relationship("Tenant", back_populates="haircut_styles")
     service = db.relationship("Service", back_populates="haircut_styles")
+
+    @property
+    def image_src(self):
+        return self.image_path or self.image_url
 
 
 class Promotion(db.Model, TimestampMixin):
@@ -291,6 +331,7 @@ class Promotion(db.Model, TimestampMixin):
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
     image_url = db.Column(db.String(255))
+    image_path = db.Column(db.String(255))
     active = db.Column(db.Boolean, nullable=False, default=True)
 
     tenant = db.relationship("Tenant", back_populates="promotions")
@@ -299,6 +340,10 @@ class Promotion(db.Model, TimestampMixin):
     def is_current(self) -> bool:
         today = date.today()
         return self.active and self.start_date <= today <= self.end_date
+
+    @property
+    def image_src(self):
+        return self.image_path or self.image_url
 
 
 class Testimonial(db.Model, TimestampMixin):

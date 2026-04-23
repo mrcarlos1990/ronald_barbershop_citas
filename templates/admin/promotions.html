@@ -4,13 +4,30 @@
 {% block admin_heading %}Promociones{% endblock %}
 
 {% block admin_content %}
+<section class="dashboard-hero panel-card">
+    <div class="dashboard-hero-copy">
+        <span class="eyebrow">Promotions studio</span>
+        <h2>Diseña ofertas que llamen la atencion antes de la reserva</h2>
+        <p>Convierte descuentos y combos en piezas visuales premium con fechas claras, imagen promocional y estado comercial visible.</p>
+    </div>
+</section>
+
 <section class="admin-grid two-col">
     <article class="panel-card">
         <div class="panel-card-header">
-            <h2>Nueva promocion</h2>
+            <div>
+                <span class="panel-label">Nueva promocion</span>
+                <h2>Publicar oferta</h2>
+            </div>
         </div>
-        <form class="form-grid single-col" method="post">
+        <form class="form-grid single-col" method="post" enctype="multipart/form-data">
             <input type="hidden" name="_action" value="create">
+            <div class="image-preview-card tall">
+                <div id="promotion-create-preview" class="image-placeholder image-placeholder-promo">
+                    <strong>Imagen promocional</strong>
+                    <span>Agrega una pieza visual para destacar la oferta en la landing.</span>
+                </div>
+            </div>
             <div class="form-field">
                 <label for="title">Titulo</label>
                 <input id="title" name="title" type="text" required>
@@ -19,41 +36,51 @@
                 <label for="description">Descripcion</label>
                 <textarea id="description" name="description" rows="4"></textarea>
             </div>
+            <div class="form-field">
+                <label for="image_file">Imagen promocional</label>
+                <input id="image_file" name="image_file" type="file" accept=".png,.jpg,.jpeg,.webp" data-preview-target="promotion-create-preview">
+            </div>
+            <div class="form-field">
+                <label for="image_url">O usa una URL externa (opcional)</label>
+                <input id="image_url" name="image_url" type="url" placeholder="https://...">
+            </div>
             <div class="form-row">
                 <div class="form-field">
                     <label for="discount_percentage">Descuento (%)</label>
                     <input id="discount_percentage" name="discount_percentage" type="number" min="0" step="0.1" required>
                 </div>
                 <div class="form-field">
-                    <label for="image_url">Imagen promocional</label>
-                    <input id="image_url" name="image_url" type="url" placeholder="https://...">
+                    <label for="start_date">Inicio</label>
+                    <input id="start_date" name="start_date" type="date" required>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-field">
-                    <label for="start_date">Inicio</label>
-                    <input id="start_date" name="start_date" type="date" required>
-                </div>
-                <div class="form-field">
                     <label for="end_date">Vencimiento</label>
                     <input id="end_date" name="end_date" type="date" required>
                 </div>
+                <label class="checkbox-field align-end">
+                    <input type="checkbox" name="active" checked>
+                    <span>Promocion activa</span>
+                </label>
             </div>
-            <label class="checkbox-field">
-                <input type="checkbox" name="active" checked>
-                <span>Promocion activa</span>
-            </label>
             <button class="btn btn-primary" type="submit">Crear promocion</button>
         </form>
     </article>
 
     <article class="panel-card">
         <div class="panel-card-header">
-            <h2>Ofertas activas y programadas</h2>
+            <div>
+                <span class="panel-label">Promociones</span>
+                <h2>Ofertas activas y programadas</h2>
+            </div>
         </div>
-        <div class="promo-grid">
+        <div class="promo-grid promo-grid-rich">
             {% for promotion in promotion_list %}
-                <article class="promo-admin-card" data-reveal>
+                <article class="promo-admin-card modern-admin-card" data-reveal>
+                    {% if promotion.image_src %}
+                        <div class="promo-banner" style="background-image: linear-gradient(180deg, rgba(7, 7, 7, 0.08), rgba(7, 7, 7, 0.88)), url('{{ media_url(promotion.image_src) }}');"></div>
+                    {% endif %}
                     <div class="promo-admin-top">
                         <span class="status-badge status-{{ 'completada' if promotion.is_current else 'pendiente' }}">{{ 'Activa' if promotion.is_current else 'Programada / Finalizada' }}</span>
                         <strong>{{ promotion.discount_percentage }}%</strong>

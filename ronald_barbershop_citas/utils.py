@@ -33,6 +33,107 @@ STATUS_LABELS = {
     "cancelada": "Cancelada",
 }
 
+LANGUAGE_LABELS = {
+    "es": "Español",
+    "en": "English",
+}
+
+CURRENCY_PRESETS = {
+    "USD": {"symbol": "US$"},
+    "DOP": {"symbol": "RD$"},
+    "EUR": {"symbol": "€"},
+    "MXN": {"symbol": "MX$"},
+}
+
+TRANSLATIONS = {
+    "es": {
+        "nav.home": "Inicio",
+        "nav.booking": "Agendar",
+        "nav.landing": "Landing",
+        "nav.client_panel": "Mi panel",
+        "nav.client_appointments": "Mis citas",
+        "nav.logout_client": "Cerrar sesion cliente",
+        "nav.create_account": "Crear cuenta",
+        "nav.login": "Iniciar sesion",
+        "nav.admin": "Admin",
+        "nav.admin_panel": "Panel admin",
+        "nav.logout_admin": "Cerrar sesion admin",
+        "nav.language": "Idioma",
+        "landing.hero_badge": "Barberia premium",
+        "landing.hero_description": "Reserva en segundos, comparte por WhatsApp y descubre una barberia con presencia, ubicacion clara y una propuesta visual lista para convertir clientes reales.",
+        "landing.reserve_now": "Reservar ahora",
+        "landing.my_panel": "Mi panel",
+        "landing.book_appointment": "Agendar cita",
+        "landing.whatsapp": "WhatsApp",
+        "landing.how_to_get": "Como llegar",
+        "landing.stats.services": "Servicios",
+        "landing.stats.styles": "Estilos publicados",
+        "landing.feature_title": "Marca, ubicacion y agenda en una sola experiencia",
+        "landing.feature_one": "Reserva mobile-first",
+        "landing.feature_two": "Confirmacion por WhatsApp",
+        "landing.feature_three": "Estilos y promociones visuales",
+        "landing.services_title": "Precios claros con una presentacion premium",
+        "landing.styles_title": "Galeria urbana para inspirar la reserva",
+        "landing.promotions_title": "Ofertas visuales para mover reservas y fidelizar clientes",
+        "landing.location_title": "Direccion y ubicacion",
+        "landing.testimonials_title": "La confianza tambien se diseña",
+        "landing.final_cta_title": "Listo para vivir la experiencia",
+        "landing.final_cta_description": "Haz tu reserva online, comparte la confirmacion por WhatsApp y llega a una barberia que cuida tanto el corte como la presencia de su marca.",
+        "client.panel_title": "Mi panel",
+        "client.hello": "Hola",
+        "client.panel_description": "Desde aqui puedes reservar nuevas citas, revisar tu historial, cancelar o reprogramar y mantener tus datos al dia.",
+        "client.quick_actions": "Atajos",
+        "client.logout": "Cerrar sesion",
+        "client.appointments_title": "Mis citas",
+        "client.appointments_description": "Visualiza tus citas, su estado actual y las acciones permitidas antes de que inicien.",
+        "booking.title": "Agenda tu proxima cita",
+        "booking.description": "Selecciona servicio, barbero, fecha y hora en una experiencia optimizada para celular.",
+    },
+    "en": {
+        "nav.home": "Home",
+        "nav.booking": "Book",
+        "nav.landing": "Landing",
+        "nav.client_panel": "My account",
+        "nav.client_appointments": "My appointments",
+        "nav.logout_client": "Log out client",
+        "nav.create_account": "Create account",
+        "nav.login": "Sign in",
+        "nav.admin": "Admin",
+        "nav.admin_panel": "Admin panel",
+        "nav.logout_admin": "Log out admin",
+        "nav.language": "Language",
+        "landing.hero_badge": "Premium barbershop",
+        "landing.hero_description": "Book in seconds, share on WhatsApp and discover a barbershop with strong branding, clear location and a premium digital experience.",
+        "landing.reserve_now": "Book now",
+        "landing.my_panel": "My account",
+        "landing.book_appointment": "Book appointment",
+        "landing.whatsapp": "WhatsApp",
+        "landing.how_to_get": "Get directions",
+        "landing.stats.services": "Services",
+        "landing.stats.styles": "Published styles",
+        "landing.feature_title": "Brand, location and booking in one polished experience",
+        "landing.feature_one": "Mobile-first booking",
+        "landing.feature_two": "WhatsApp confirmation",
+        "landing.feature_three": "Visual styles and promotions",
+        "landing.services_title": "Clear pricing with a premium presentation",
+        "landing.styles_title": "Urban gallery to inspire bookings",
+        "landing.promotions_title": "Visual offers to boost bookings and loyalty",
+        "landing.location_title": "Address and location",
+        "landing.testimonials_title": "Trust is designed too",
+        "landing.final_cta_title": "Ready to experience",
+        "landing.final_cta_description": "Book online, share the confirmation on WhatsApp and arrive at a barbershop that cares about both the haircut and the brand experience.",
+        "client.panel_title": "My account",
+        "client.hello": "Hello",
+        "client.panel_description": "From here you can book new appointments, review your history, cancel or reschedule, and keep your profile updated.",
+        "client.quick_actions": "Quick actions",
+        "client.logout": "Log out",
+        "client.appointments_title": "My appointments",
+        "client.appointments_description": "View your appointments, their current status and the actions available before they start.",
+        "booking.title": "Book your next appointment",
+        "booking.description": "Choose service, barber, date and time in a mobile-optimized experience.",
+    },
+}
+
 RESERVED_TENANT_SLUGS = {
     "admin",
     "cliente",
@@ -90,18 +191,25 @@ def format_time(value: time | None) -> str:
 def format_date(value: date | None) -> str:
     if not value:
         return ""
-    return value.strftime("%d/%m/%Y")
+    language_code = get_language_code()
+    return value.strftime("%m/%d/%Y" if language_code == "en" else "%d/%m/%Y")
 
 
 def format_datetime(value: datetime | None) -> str:
     if not value:
         return ""
-    return value.strftime("%d/%m/%Y %I:%M %p").lstrip("0")
+    language_code = get_language_code()
+    date_format = "%m/%d/%Y %I:%M %p" if language_code == "en" else "%d/%m/%Y %I:%M %p"
+    return value.strftime(date_format).lstrip("0")
 
 
 def format_currency(value: float | int | None) -> str:
     amount = float(value or 0)
-    return f"US${amount:,.2f}"
+    settings = get_business_settings(create=True)
+    currency_code = (settings.currency_code or "USD").upper()
+    preset = CURRENCY_PRESETS.get(currency_code, CURRENCY_PRESETS["USD"])
+    symbol = settings.currency_symbol or preset["symbol"]
+    return f"{symbol}{amount:,.2f}"
 
 
 def normalize_phone(phone: str | None) -> str:
@@ -126,6 +234,27 @@ def build_whatsapp_target(phone: str | None) -> str:
     if len(digits) == 10:
         return f"1{digits}"
     return digits
+
+
+def get_language_code(tenant_id: int | None = None) -> str:
+    selected = ""
+    if has_request_context():
+        selected = (session.get("language_code") or "").strip().lower()
+        if selected in LANGUAGE_LABELS:
+            return selected
+
+    settings = get_business_settings(tenant_id=tenant_id, create=True)
+    fallback = (settings.default_language or "es").strip().lower()
+    return fallback if fallback in LANGUAGE_LABELS else "es"
+
+
+def translate(key: str, default: str | None = None, *, language_code: str | None = None, **kwargs) -> str:
+    selected = (language_code or get_language_code()).strip().lower()
+    catalog = TRANSLATIONS.get(selected, TRANSLATIONS["es"])
+    message = catalog.get(key) or TRANSLATIONS["es"].get(key) or default or key
+    if kwargs:
+        return message.format(**kwargs)
+    return message
 
 
 def get_default_tenant(create: bool = True) -> Tenant | None:
@@ -196,7 +325,12 @@ def _create_default_business_settings(tenant: Tenant) -> BusinessSettings:
         google_maps_url="https://maps.google.com/?q=Ronald+BarberShop",
         primary_color="#d2b271",
         secondary_color="#7f1f1f",
+        visual_theme="urban_gold",
+        default_language="es",
+        currency_code="USD",
+        currency_symbol="US$",
         working_days="Lunes a Sabado",
+        show_language_selector=True,
     )
     db.session.add(settings)
     db.session.commit()

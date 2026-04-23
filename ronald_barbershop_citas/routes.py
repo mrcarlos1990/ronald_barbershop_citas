@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from datetime import date
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from urllib.parse import urlparse
+
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user
 
 from .decorators import client_required
 from .models import Appointment, Barber, HaircutStyle, Promotion, Service, Testimonial, db
 from .utils import (
+    LANGUAGE_LABELS,
     active_promotions_query,
     build_available_slots,
     build_calendar_days,
@@ -27,6 +30,13 @@ from .utils import (
 
 
 main_bp = Blueprint("main", __name__)
+
+
+def _is_safe_internal_path(path: str | None) -> bool:
+    if not path:
+        return False
+    parsed = urlparse(path)
+    return parsed.scheme == "" and parsed.netloc == "" and path.startswith("/")
 
 
 def _tenant_id_for_request() -> int:
@@ -69,7 +79,7 @@ def landing():
     booking_url = request.url_root.rstrip("/") + url_for("main.booking_form")
     whatsapp_link = build_reusable_whatsapp_link(settings, booking_url=booking_url)
     return render_template(
-        "public_business.html",
+        "public/landing.html",
         tenant=tenant,
         settings=settings,
         appearance=appearance,
@@ -83,6 +93,21 @@ def landing():
         booking_url=booking_url,
         whatsapp_link=whatsapp_link,
     )
+
+
+@main_bp.route("/idioma/<language_code>")
+def set_language(language_code: str):
+    selected = (language_code or "").strip().lower()
+    if selected not in LANGUAGE_LABELS:
+        flash("El idioma solicitado no esta disponible.", "warning")
+    else:
+        session["language_code"] = selected
+        flash("Idioma actualizado correctamente.", "success")
+
+    next_url = request.args.get("next")
+    if _is_safe_internal_path(next_url):
+        return redirect(next_url)
+    return redirect(url_for("main.landing"))
 
 
 @main_bp.route("/agendar", methods=["GET", "POST"])
